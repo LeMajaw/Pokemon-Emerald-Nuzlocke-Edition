@@ -151,7 +151,7 @@ Route117_EventScript_ItemGreatBall::
 	end
 
 Route117_EventScript_ItemRevive::
-	finditem ITEM_REVIVE
+	finditem ITEM_SUPER_POTION
 	end
 
 Route118_EventScript_ItemHyperPotion::
@@ -207,7 +207,7 @@ Route120_EventScript_ItemNestBall::
 	end
 
 Route120_EventScript_ItemRevive::
-	finditem ITEM_REVIVE
+	finditem ITEM_SUPER_POTION
 	end
 
 Route121_EventScript_ItemCarbos::
@@ -215,7 +215,7 @@ Route121_EventScript_ItemCarbos::
 	end
 
 Route121_EventScript_ItemRevive::
-	finditem ITEM_REVIVE
+	finditem ITEM_SUPER_POTION
 	end
 
 Route121_EventScript_ItemZinc::
@@ -291,7 +291,7 @@ Route133_EventScript_ItemStarPiece::
 	end
 
 Route133_EventScript_ItemMaxRevive::
-	finditem ITEM_MAX_REVIVE
+	finditem ITEM_MAX_POTION
 	end
 
 Route134_EventScript_ItemCarbos::
@@ -303,7 +303,7 @@ Route134_EventScript_ItemStarPiece::
 	end
 
 PetalburgCity_EventScript_ItemMaxRevive::
-	finditem ITEM_MAX_REVIVE
+	finditem ITEM_MAX_POTION
 	end
 
 PetalburgCity_EventScript_ItemEther::
@@ -435,7 +435,7 @@ AbandonedShip_Room_B1F_EventScript_ItemTMIceBeam::
 	end
 
 AbandonedShip_Rooms2_1F_EventScript_ItemRevive::
-	finditem ITEM_REVIVE
+	finditem ITEM_SUPER_POTION
 	end
 
 AbandonedShip_CaptainsOffice_EventScript_ItemStorageKey::
@@ -471,7 +471,7 @@ SafariZone_North_EventScript_ItemCalcium::
 	end
 
 SafariZone_Southwest_EventScript_ItemMaxRevive::
-	finditem ITEM_MAX_REVIVE
+	finditem ITEM_MAX_POTION
 	end
 
 SafariZone_Northeast_EventScript_ItemNugget::
@@ -651,7 +651,7 @@ MagmaHideout_3F_2R_EventScript_ItemPPMax::
 	end
 
 MagmaHideout_4F_EventScript_ItemMaxRevive::
-	finditem ITEM_MAX_REVIVE
+	finditem ITEM_MAX_POTION
 	end
 
 MagmaHideout_3F_3R_EventScript_ItemEscapeRope::

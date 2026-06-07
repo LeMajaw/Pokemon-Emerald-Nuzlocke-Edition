@@ -10222,11 +10222,11 @@ static void Cmd_trygivecaughtmonnick(void)
     switch (gBattleCommunication[MULTIUSE_STATE])
     {
     case 0:
-        HandleBattleWindow(YESNOBOX_X_Y, 0);
-        BattlePutTextOnWindow(gText_BattleYesNoChoice, B_WIN_YESNO);
-        gBattleCommunication[MULTIUSE_STATE]++;
-        gBattleCommunication[CURSOR_POSITION] = 0;
-        BattleCreateYesNoCursorAt(0);
+        // Nuzlocke (Rule 1): forced nicknames. Skip the "give a nickname?"
+        // Yes/No prompt and begin the naming flow automatically, exactly as
+        // if the player had chosen "Yes" (fade out, then advance to naming).
+        BeginFastPaletteFade(3);
+        gBattleCommunication[MULTIUSE_STATE] = 2;
         break;
     case 1:
         if (JOY_NEW(DPAD_UP) && gBattleCommunication[CURSOR_POSITION] != 0)

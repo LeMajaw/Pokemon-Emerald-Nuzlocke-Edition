@@ -8,6 +8,13 @@ CableClub_Text_WhichService:
 	.string "Which of our services do you wish\n"
 	.string "to use?$"
 
+CableClub_Text_TradingDisabledNuzlocke:
+	.string "I'm sorry, but trading POKéMON\n"
+	.string "is not allowed on this adventure.\p"
+	.string "Trading away a fallen friend, or\n"
+	.string "bringing one in, would break the\l"
+	.string "rules you set out to follow.$"
+
 CableClub_Text_TradeUsingLinkCable::
 	.string "Trade POKéMON with another player\n"
 	.string "using a GBA Game Link cable.$"

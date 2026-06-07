@@ -886,13 +886,9 @@ static bool8 TryProduceOrHatchEgg(struct DayCare *daycare)
             daycare->mons[i].steps++, validEggs++;
     }
 
-    // Check if an egg should be produced
-    if (daycare->offspringPersonality == 0 && validEggs == DAYCARE_MON_COUNT && (daycare->mons[1].steps & 0xFF) == 0xFF)
-    {
-        u8 compatibility = GetDaycareCompatibilityScore(daycare);
-        if (compatibility > (Random() * 100u) / USHRT_MAX)
-            TriggerPendingDaycareEgg();
-    }
+    // Nuzlocke (Rules 6, 7): Day Care breeding is disabled. No egg is ever
+    // produced by the Day Care. Gift/event eggs are given by other scripts and
+    // are unaffected by this.
 
     // Try to hatch Egg
     if (++daycare->stepCounter == 255)

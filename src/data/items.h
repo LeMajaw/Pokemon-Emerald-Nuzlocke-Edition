@@ -607,8 +607,9 @@ const struct Item gItems[] =
         .price = 200,
         .description = sSacredAshDesc,
         .pocket = POCKET_ITEMS,
-        .type = ITEM_USE_PARTY_MENU,
-        .fieldUseFunc = ItemUseOutOfBattle_SacredAsh,
+        // Nuzlocke (Rule 13): Sacred Ash can never revive. Disable its use.
+        .type = ITEM_USE_BAG_MENU,
+        .fieldUseFunc = ItemUseOutOfBattle_CannotUse,
     },
 
 // Collectibles
