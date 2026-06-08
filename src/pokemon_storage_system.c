@@ -7740,6 +7740,26 @@ static bool8 SetMenuTexts_Item(void)
     if (sStorage->displayMonSpecies == SPECIES_EGG)
         return FALSE;
 
+    // Nuzlocke (Rule 4): in the Graveyard, a dead Pokemon's only permitted
+    // interaction is sending its held item straight to the Bag. Never offer
+    // TAKE (item-to-cursor), GIVE / GIVE_2 (placing an item on a dead mon), or
+    // SWITCH - those would give items to the dead or shuffle items between them.
+    // MENU_BAG removes the item and adds it to the Bag without touching the
+    // Pokemon's species, HP, or storage slot, so death status is preserved.
+    if (sStorageGraveyardMode)
+    {
+        if (sStorage->displayMonSpecies == SPECIES_NONE)
+            return FALSE;
+        if (sStorage->displayMonItemId == ITEM_NONE
+            || ItemIsMail(sStorage->displayMonItemId))
+            return FALSE; // Nothing retrievable; no menu.
+
+        SetMenuText(MENU_BAG);
+        SetMenuText(MENU_INFO);
+        SetMenuText(MENU_CANCEL);
+        return TRUE;
+    }
+
     if (!IsMovingItem())
     {
         if (sStorage->displayMonItemId == ITEM_NONE)

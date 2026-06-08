@@ -1,6 +1,7 @@
 #include "global.h"
 #include "battle.h"
 #include "event_data.h"
+#include "item.h"
 #include "main.h"
 #include "menu.h"
 #include "pokemon.h"
@@ -13,6 +14,7 @@
 #include "constants/battle.h"
 #include "constants/characters.h"
 #include "constants/flags.h"
+#include "constants/items.h"
 #include "constants/species.h"
 
 // One-time "Graveyard initialized" marker. Reuses an existing unused flag, so
@@ -78,6 +80,21 @@ bool32 Nuzlocke_BattleCountsAsDeath(u32 battleTypeFlags)
     return TRUE;
 }
 
+// Rule 4: when a Pokemon dies, try to move its held item into the Bag so the
+// player can keep using it. If the Bag has no room, the item stays attached to
+// the dead Pokemon and travels to the Graveyard, where it can be retrieved
+// later via the Graveyard's PC. Never destroys the item.
+static void TryRetrieveHeldItemToBag(struct Pokemon *mon)
+{
+    u16 item = GetMonData(mon, MON_DATA_HELD_ITEM, NULL);
+
+    if (item != ITEM_NONE && AddBagItem(item, 1) == TRUE)
+    {
+        u16 none = ITEM_NONE;
+        SetMonData(mon, MON_DATA_HELD_ITEM, &none);
+    }
+}
+
 // Moves a single fainted Pokemon into the Graveyard (box 13 first, then box
 // 14) in death order. Returns TRUE if placed (and cleared from the party slot).
 static bool32 MoveMonToGraveyard(struct Pokemon *mon)
@@ -94,9 +111,14 @@ static bool32 MoveMonToGraveyard(struct Pokemon *mon)
     if (slot < 0)
         return FALSE; // Graveyard full (60 dead); leave the mon in place.
 
-    // The BoxPokemon retains species, nickname, IVs/EVs, moves and held item -
-    // everything needed for the memorial. Current HP/status are not stored for
-    // boxed mons, which is fine because a dead mon is never withdrawn.
+    // Rule 4: pull the held item into the Bag before the mon is boxed. If the
+    // Bag is full the item remains on the (now boxed) mon for later retrieval.
+    TryRetrieveHeldItemToBag(mon);
+
+    // The BoxPokemon retains species, nickname, IVs/EVs, moves and any held item
+    // that did not fit in the Bag - everything needed for the memorial. Current
+    // HP/status are not stored for boxed mons, which is fine because a dead mon
+    // is never withdrawn.
     SetBoxMonAt(boxId, slot, &mon->box);
     ZeroMonData(mon);
     return TRUE;
