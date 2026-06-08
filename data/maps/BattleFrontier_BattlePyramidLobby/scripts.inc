@@ -54,6 +54,9 @@ BattleFrontier_BattlePyramidLobby_EventScript_GiveBattlePoints::
 	clearflag FLAG_STORING_ITEMS_IN_PYRAMID_BAG
 	frontier_checkairshow
 	special LoadPlayerParty
+	@ Nuzlocke (Rule 11): apply frontier deaths to the restored party before it
+	@ is healed, so fallen Pokemon go to the Graveyard and are not revived.
+	special Nuzlocke_ApplyFrontierDeaths
 	pyramid_clearhelditems
 	special HealPlayerParty
 	message BattleFrontier_BattlePyramidLobby_Text_UsedBattleBagWillBeKept
@@ -78,6 +81,9 @@ BattleFrontier_BattlePyramidLobby_EventScript_GiveBattlePoints::
 BattleFrontier_BattlePyramidLobby_EventScript_LostChallenge::
 	frontier_checkairshow
 	special LoadPlayerParty
+	@ Nuzlocke (Rule 11): apply frontier deaths to the restored party before it
+	@ is healed, so fallen Pokemon go to the Graveyard and are not revived.
+	special Nuzlocke_ApplyFrontierDeaths
 	pyramid_clearhelditems
 	special HealPlayerParty
 	lockall

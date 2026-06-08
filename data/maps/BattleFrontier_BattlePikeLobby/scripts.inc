@@ -56,6 +56,9 @@ BattleFrontier_BattlePikeLobby_EventScript_GiveBattlePoints::
 	addvar VAR_RESULT, 1
 	pike_set PIKE_DATA_TOTAL_STREAKS, VAR_RESULT
 	special LoadPlayerParty
+	@ Nuzlocke (Rule 11): apply frontier deaths to the restored party before it
+	@ is healed, so fallen Pokemon go to the Graveyard and are not revived.
+	special Nuzlocke_ApplyFrontierDeaths
 	special HealPlayerParty
 	pike_resethelditems
 	message BattleFrontier_BattlePikeLobby_Text_ShallRecordResults
@@ -77,6 +80,9 @@ BattleFrontier_BattlePikeLobby_EventScript_LostChallenge::
 	frontier_set FRONTIER_DATA_BATTLE_NUM, 0
 	pike_set PIKE_DATA_WIN_STREAK_ACTIVE, FALSE
 	special LoadPlayerParty
+	@ Nuzlocke (Rule 11): apply frontier deaths to the restored party before it
+	@ is healed, so fallen Pokemon go to the Graveyard and are not revived.
+	special Nuzlocke_ApplyFrontierDeaths
 	special HealPlayerParty
 	pike_resethelditems
 	pike_save 0

@@ -72,6 +72,9 @@ BattleFrontier_BattleArenaLobby_EventScript_LostChallenge::
 BattleFrontier_BattleArenaLobby_EventScript_SaveAfterChallenge::
 	frontier_checkairshow
 	special LoadPlayerParty
+	@ Nuzlocke (Rule 11): apply frontier deaths to the restored party before it
+	@ is healed, so fallen Pokemon go to the Graveyard and are not revived.
+	special Nuzlocke_ApplyFrontierDeaths
 	special HealPlayerParty
 	arena_save 0
 	playse SE_SAVE

@@ -57,18 +57,27 @@ u8 Nuzlocke_GetLivingBoxCount(void)
     return TOTAL_BOXES_COUNT - 2;
 }
 
+// Battle Frontier facilities that fight with the player's OWN Pokemon (Rule
+// 11). Faints in these are recorded during the challenge and applied once it
+// ends. Battle Factory is intentionally absent - it uses rental Pokemon, so its
+// faints never count.
+#define NUZLOCKE_OWN_MON_FRONTIER_BATTLES                              \
+    (BATTLE_TYPE_BATTLE_TOWER | BATTLE_TYPE_DOME | BATTLE_TYPE_PALACE  \
+   | BATTLE_TYPE_ARENA | BATTLE_TYPE_PIKE | BATTLE_TYPE_PYRAMID)
+
 bool32 Nuzlocke_BattleCountsAsDeath(u32 battleTypeFlags)
 {
     // Link battles are friendly competition; deaths there never count (Rule 10).
     if (battleTypeFlags & BATTLE_TYPE_LINK)
         return FALSE;
 
-    // Non-lethal / special battle types never count. NOTE: Battle Tower (part
-    // of BATTLE_TYPE_FRONTIER) is intentionally excluded here for now. Per Rule
-    // 11 it *should* count, but the frontier heals and restores the party
-    // between rounds and tracks fixed party slots, so removing a fainted mon
-    // mid-challenge risks corrupting facility state. Battle Tower death must be
-    // applied at end-of-challenge instead - flagged as a follow-up.
+    // Non-lethal / special battle types never count *here*. All Battle Frontier
+    // facilities (BATTLE_TYPE_FRONTIER) are excluded from immediate processing:
+    // the frontier heals and restores the party between rounds, so a fainted mon
+    // must not be removed mid-challenge. Instead, faints in the own-Pokemon
+    // facilities are recorded during the challenge and applied at the end (see
+    // Nuzlocke_OnBattleEnd / Nuzlocke_ApplyFrontierDeaths, Rule 11). Battle
+    // Factory uses rental Pokemon and never counts at all.
     if (battleTypeFlags & (BATTLE_TYPE_SAFARI
                          | BATTLE_TYPE_FRONTIER
                          | BATTLE_TYPE_RECORDED
@@ -275,11 +284,12 @@ void Nuzlocke_OnBattleEnd(void)
     if (gBattleTypeFlags & BATTLE_TYPE_LINK)
         return;
 
-    // Battle Tower (Rule 11): record faints now; they are applied after the
-    // challenge ends (Nuzlocke_ApplyFrontierDeaths). Other frontier facilities
-    // that use the player's own Pokemon will be added here as their lobby
-    // scripts are hooked. Battle Factory uses rental Pokemon and never counts.
-    if (gBattleTypeFlags & BATTLE_TYPE_BATTLE_TOWER)
+    // Battle Frontier own-Pokemon facilities (Rule 11): Tower, Dome, Palace,
+    // Arena, Pike and Pyramid. Record faints now; they are applied after the
+    // challenge ends, once each lobby's LoadPlayerParty has restored the full
+    // party and calls Nuzlocke_ApplyFrontierDeaths. Battle Factory is excluded
+    // (rental Pokemon) by its absence from the mask.
+    if (gBattleTypeFlags & NUZLOCKE_OWN_MON_FRONTIER_BATTLES)
     {
         Nuzlocke_RecordFrontierFaints();
         return;
