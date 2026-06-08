@@ -376,6 +376,7 @@ static void DeleteTextCharacter(void);
 static bool8 AddTextCharacter(void);
 static void BufferCharacter(u8);
 static void SaveInputText(void);
+static bool8 IsNamingScreenInputEmpty(void);
 static void LoadGfx(void);
 static void CreateHelperTasks(void);
 static void LoadPalettes(void);
@@ -668,6 +669,20 @@ static bool8 MainState_MoveToOKButton(void)
 
 static bool8 MainState_PressedOKButton(void)
 {
+    // Nuzlocke (Rule 1): forbid empty nicknames for caught/gift/trade/hatch
+    // Pokemon. Vanilla SaveInputText leaves the species default name when the
+    // input is blank, which would let the player bypass the forced nickname by
+    // submitting nothing. Bounce back to the keyboard until at least one real
+    // (non-space) character is entered.
+    if ((sNamingScreen->templateNum == NAMING_SCREEN_CAUGHT_MON
+         || sNamingScreen->templateNum == NAMING_SCREEN_NICKNAME)
+        && IsNamingScreenInputEmpty())
+    {
+        PlaySE(SE_FAILURE);
+        sNamingScreen->state = STATE_HANDLE_INPUT;
+        return FALSE;
+    }
+
     SaveInputText();
     SetInputState(INPUT_STATE_DISABLED);
     SetCursorFlashing(FALSE);
@@ -1860,6 +1875,21 @@ static void SaveInputText(void)
             break;
         }
     }
+}
+
+// Nuzlocke (Rule 1): TRUE if the entered text has no real characters (it is
+// all spaces / EOS). Mirrors the emptiness test used by SaveInputText, so a
+// whitespace-only entry counts as empty too.
+static bool8 IsNamingScreenInputEmpty(void)
+{
+    u8 i;
+
+    for (i = 0; i < sNamingScreen->template->maxChars; i++)
+    {
+        if (sNamingScreen->textBuffer[i] != CHAR_SPACE && sNamingScreen->textBuffer[i] != EOS)
+            return FALSE;
+    }
+    return TRUE;
 }
 
 static void LoadGfx(void)
