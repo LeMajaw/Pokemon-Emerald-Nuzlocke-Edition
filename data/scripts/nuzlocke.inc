@@ -3,6 +3,7 @@
 @ to the title screen; the lost run can never resume normal play.
 EventScript_NuzlockeGameOver::
 	lockall
+	special Nuzlocke_ShowGameOverTitle
 	msgbox gText_NuzlockeGameOver, MSGBOX_DEFAULT
 	special Nuzlocke_SaveMemorialAndReturnToTitle
 	waitstate

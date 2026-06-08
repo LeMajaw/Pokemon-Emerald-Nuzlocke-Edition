@@ -28,6 +28,8 @@ void Nuzlocke_ApplyFrontierDeaths(void);
 bool32 Nuzlocke_HasLivingPokemon(void);
 // Game Over special: write the memorial save and return to the title screen.
 void Nuzlocke_SaveMemorialAndReturnToTitle(void);
+// Game Over title special: draws a centred "GAME OVER" window above the msgbox.
+void Nuzlocke_ShowGameOverTitle(void);
 
 // Game Over field script (shown when a run is lost).
 extern const u8 EventScript_NuzlockeGameOver[];

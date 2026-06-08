@@ -57,6 +57,7 @@ gSpecials::
 	def_special LoadPlayerParty
 	def_special Nuzlocke_ApplyFrontierDeaths
 	def_special Nuzlocke_SaveMemorialAndReturnToTitle
+	def_special Nuzlocke_ShowGameOverTitle
 	def_special ChooseHalfPartyForBattle, waitstate=1
 	def_special Script_ShowLinkTrainerCard, waitstate=1
 	def_special ObjectEventInteractionGetBerryTreeData

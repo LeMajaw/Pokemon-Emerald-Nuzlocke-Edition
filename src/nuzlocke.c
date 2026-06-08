@@ -2,12 +2,16 @@
 #include "battle.h"
 #include "event_data.h"
 #include "main.h"
+#include "menu.h"
 #include "pokemon.h"
 #include "pokemon_storage_system.h"
 #include "save.h"
+#include "text.h"
 #include "title_screen.h"
+#include "window.h"
 #include "nuzlocke.h"
 #include "constants/battle.h"
+#include "constants/characters.h"
 #include "constants/flags.h"
 #include "constants/species.h"
 
@@ -297,4 +301,53 @@ void Nuzlocke_SaveMemorialAndReturnToTitle(void)
 {
     TrySavingData(SAVE_NORMAL);
     SetMainCallback2(CB2_InitTitleScreen);
+}
+
+// Centred "GAME OVER" title window drawn above the Game Over dialogue.
+// Placed at baseBlock 0x100 (tiles 256-287) to stay clear of the dialog
+// window at 0x194 (tiles 404-511) and the pre-loaded frame tiles at 0x200.
+static const struct WindowTemplate sNuzlockeGameOverTitleTemplate =
+{
+    .bg         = 0,
+    .tilemapLeft = 9,   // centres a 12-tile window: frame at col 8..21 of 30
+    .tilemapTop  = 6,   // centres the box in the space above the dialog
+    .width       = 12,  // inner content = 96 px
+    .height      = 2,   // inner content = 16 px (one FONT_NORMAL line)
+    .paletteNum  = 15,
+    .baseBlock   = 0x100,
+};
+
+static const u8 sText_NuzlockeGameOverTitle[] = _("GAME OVER");
+
+// Colors: [foreground, background, shadow] using standard dialog palette
+static const u8 sNuzlockeGameOverTitleColors[] =
+{
+    TEXT_COLOR_DARK_GRAY, TEXT_COLOR_WHITE, TEXT_COLOR_LIGHT_GRAY
+};
+
+// Nuzlocke (Rule 5): draw a centred "GAME OVER" title box above the dialogue.
+// Called as a script special immediately before the msgbox, so the window
+// is visible throughout the run-end message.
+void Nuzlocke_ShowGameOverTitle(void)
+{
+    u8 winId;
+    s32 strWidth;
+    u8 x;
+
+    // Load window-frame and text palettes into both palette buffers now so
+    // the title is visible before the msgbox task reaches its palette-load
+    // step (Task_DrawFieldMessage state 0).
+    LoadMessageBoxAndBorderGfx();
+
+    winId = (u8)AddWindow(&sNuzlockeGameOverTitleTemplate);
+    DrawStdWindowFrame(winId, FALSE);
+
+    // Horizontally centre "GAME OVER" in the 96 px inner area.
+    strWidth = GetStringWidth(FONT_NORMAL, sText_NuzlockeGameOverTitle, 0);
+    x = (u8)((96 - strWidth) / 2);
+
+    AddTextPrinterParameterized4(winId, FONT_NORMAL, x, 0, 0, 0,
+                                 sNuzlockeGameOverTitleColors, TEXT_SKIP_DRAW,
+                                 sText_NuzlockeGameOverTitle);
+    CopyWindowToVram(winId, COPYWIN_FULL);
 }
