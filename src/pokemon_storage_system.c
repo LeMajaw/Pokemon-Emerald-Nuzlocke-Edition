@@ -1789,8 +1789,19 @@ void ResetPokemonStorageSystem(void)
         ConvertIntToDecimalStringN(dest, boxId + 1, STR_CONV_MODE_LEFT_ALIGN, 2);
     }
 
-    for (boxId = 0; boxId < TOTAL_BOXES_COUNT; boxId++)
-        SetBoxWallpaper(boxId, boxId % (MAX_DEFAULT_WALLPAPER + 1));
+    // Nuzlocke (Phase 9): default living-box wallpapers repeat
+    // Forest / City / Savanna / Desert across boxes 1-12. The Graveyard boxes
+    // (13/14) are forced to Simple by GetBoxWallpaper and are skipped here
+    // (SetBoxWallpaper ignores them anyway).
+    {
+        static const u8 sNuzlockeDefaultBoxWallpapers[4] =
+        {
+            WALLPAPER_FOREST, WALLPAPER_CITY, WALLPAPER_SAVANNA, WALLPAPER_DESERT
+        };
+
+        for (boxId = 0; boxId < TOTAL_BOXES_COUNT; boxId++)
+            SetBoxWallpaper(boxId, sNuzlockeDefaultBoxWallpapers[boxId % 4]);
+    }
 
     ResetWaldaWallpaper();
 }
@@ -4412,7 +4423,9 @@ static void AddWallpapersMenu(u8 wallpaperSet)
         SetMenuText(MENU_POLKADOT);
         SetMenuText(MENU_POKECENTER);
         SetMenuText(MENU_MACHINE);
-        SetMenuText(MENU_SIMPLE);
+        // Nuzlocke (Phase 9): MENU_SIMPLE (WALLPAPER_PLAIN) is intentionally
+        // omitted - Simple is reserved exclusively for the Graveyard boxes and
+        // cannot be chosen for a living box.
         break;
     }
     AddMenu();
@@ -9610,6 +9623,12 @@ u8 *GetBoxNamePtr(u8 boxId)
 
 static u8 GetBoxWallpaper(u8 boxId)
 {
+    // Nuzlocke (Phase 9): the Graveyard boxes always display the Simple
+    // wallpaper, regardless of any stored value. This holds for pre-hack saves
+    // too, and makes Simple exclusive to the Graveyard.
+    if (Nuzlocke_IsGraveyardBox(boxId))
+        return WALLPAPER_PLAIN;
+
     if (boxId < TOTAL_BOXES_COUNT)
         return gPokemonStoragePtr->boxWallpapers[boxId];
     else
@@ -9618,6 +9637,11 @@ static u8 GetBoxWallpaper(u8 boxId)
 
 static void SetBoxWallpaper(u8 boxId, u8 wallpaperId)
 {
+    // Nuzlocke (Phase 9): wallpaper changes must never affect the Graveyard
+    // boxes - they stay Simple permanently.
+    if (Nuzlocke_IsGraveyardBox(boxId))
+        return;
+
     if (boxId < TOTAL_BOXES_COUNT && wallpaperId < WALLPAPER_COUNT)
         gPokemonStoragePtr->boxWallpapers[boxId] = wallpaperId;
 }
