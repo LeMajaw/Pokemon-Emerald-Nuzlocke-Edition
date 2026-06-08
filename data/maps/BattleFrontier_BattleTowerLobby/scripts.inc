@@ -115,6 +115,9 @@ BattleFrontier_BattleTowerLobby_EventScript_AskSaveBattle::
 	waitmessage
 	frontier_checkairshow
 	special LoadPlayerParty
+	@ Nuzlocke (Rule 11): apply Battle Tower deaths to the restored party before
+	@ it is healed, so fallen Pokemon go to the Graveyard and are not revived.
+	special Nuzlocke_ApplyFrontierDeaths
 	special HealPlayerParty
 	tower_save 0
 	playse SE_SAVE

@@ -18,6 +18,11 @@ void Nuzlocke_ProcessPartyDeaths(void);
 // Applies permanent death if the battle type counts.
 void Nuzlocke_OnBattleEnd(void);
 
+// Battle Frontier death handling (Rule 11). Faints are recorded during a
+// challenge and applied (as a script special) after the party is restored.
+void Nuzlocke_RecordFrontierFaints(void);
+void Nuzlocke_ApplyFrontierDeaths(void);
+
 // One-time save-compatibility migration: relocates any living Pokemon found in
 // the Graveyard boxes (13/14) of a pre-hack save into boxes 1..12 (Rule 3.2).
 void Nuzlocke_InitGraveyardIfNeeded(void);

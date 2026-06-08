@@ -13,6 +13,13 @@
 // boxes 13/14 are exclusively the Graveyard.
 #define FLAG_NUZLOCKE_GRAVEYARD_READY FLAG_UNUSED_0x020
 
+// Runtime-only record (never saved) of the Pokemon that fainted during the
+// current Battle Frontier challenge, identified by personality value. The
+// frontier heals between rounds and restores the full party at the end, so
+// deaths must be remembered here and applied once the real party is back.
+static u32 sFrontierDeadPersonalities[6];
+static u8 sFrontierDeadCount;
+
 // Nuzlocke core implementation. See docs/NuzlockeSpecification.md.
 //
 // The Graveyard occupies the last two PC boxes. Living storage uses the
@@ -166,11 +173,88 @@ void Nuzlocke_InitGraveyardIfNeeded(void)
     FlagSet(FLAG_NUZLOCKE_GRAVEYARD_READY);
 }
 
+// Records (by personality) every fainted, non-egg member of the current
+// reduced frontier party. Idempotent across rounds (Rule 11).
+void Nuzlocke_RecordFrontierFaints(void)
+{
+    u32 i, j;
+
+    for (i = 0; i < PARTY_SIZE; i++)
+    {
+        struct Pokemon *mon = &gPlayerParty[i];
+        u32 personality;
+
+        if (GetMonData(mon, MON_DATA_SPECIES, NULL) == SPECIES_NONE)
+            continue;
+        if (GetMonData(mon, MON_DATA_IS_EGG, NULL))
+            continue;
+        if (GetMonData(mon, MON_DATA_HP, NULL) != 0)
+            continue;
+
+        personality = GetMonData(mon, MON_DATA_PERSONALITY, NULL);
+        for (j = 0; j < sFrontierDeadCount; j++)
+        {
+            if (sFrontierDeadPersonalities[j] == personality)
+                break;
+        }
+        if (j == sFrontierDeadCount && sFrontierDeadCount < (u8)ARRAY_COUNT(sFrontierDeadPersonalities))
+            sFrontierDeadPersonalities[sFrontierDeadCount++] = personality;
+    }
+}
+
+// Applies recorded frontier deaths to the now-restored full party. Called as a
+// script special right after the end-of-challenge LoadPlayerParty, before the
+// party is healed. Matches dead Pokemon by personality, so it is robust to the
+// per-round reordering some facilities (e.g. Battle Dome) perform.
+void Nuzlocke_ApplyFrontierDeaths(void)
+{
+    u32 i, p;
+    bool32 anyDied = FALSE;
+
+    for (p = 0; p < sFrontierDeadCount; p++)
+    {
+        for (i = 0; i < PARTY_SIZE; i++)
+        {
+            struct Pokemon *mon = &gPlayerParty[i];
+
+            if (GetMonData(mon, MON_DATA_SPECIES, NULL) == SPECIES_NONE)
+                continue;
+            if (GetMonData(mon, MON_DATA_PERSONALITY, NULL) != sFrontierDeadPersonalities[p])
+                continue;
+
+            if (MoveMonToGraveyard(mon))
+                anyDied = TRUE;
+            break;
+        }
+    }
+
+    sFrontierDeadCount = 0;
+    if (anyDied)
+    {
+        CompactPartySlots();
+        CalculatePlayerPartyCount();
+    }
+}
+
 void Nuzlocke_OnBattleEnd(void)
 {
     // Ensure the Graveyard boxes are cleared of any pre-hack living Pokemon
     // before the first death is ever placed there.
     Nuzlocke_InitGraveyardIfNeeded();
+
+    // Link battles never count (Rule 10).
+    if (gBattleTypeFlags & BATTLE_TYPE_LINK)
+        return;
+
+    // Battle Tower (Rule 11): record faints now; they are applied after the
+    // challenge ends (Nuzlocke_ApplyFrontierDeaths). Other frontier facilities
+    // that use the player's own Pokemon will be added here as their lobby
+    // scripts are hooked. Battle Factory uses rental Pokemon and never counts.
+    if (gBattleTypeFlags & BATTLE_TYPE_BATTLE_TOWER)
+    {
+        Nuzlocke_RecordFrontierFaints();
+        return;
+    }
 
     if (Nuzlocke_BattleCountsAsDeath(gBattleTypeFlags))
         Nuzlocke_ProcessPartyDeaths();
