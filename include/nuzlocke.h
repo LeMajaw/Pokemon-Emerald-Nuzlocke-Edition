@@ -18,4 +18,15 @@ void Nuzlocke_ProcessPartyDeaths(void);
 // Applies permanent death if the battle type counts.
 void Nuzlocke_OnBattleEnd(void);
 
+// One-time save-compatibility migration: relocates any living Pokemon found in
+// the Graveyard boxes (13/14) of a pre-hack save into boxes 1..12 (Rule 3.2).
+void Nuzlocke_InitGraveyardIfNeeded(void);
+
+// Graveyard box queries (used by the PC storage system, Rule 3).
+// The Graveyard occupies the last two PC boxes; living storage is the rest.
+bool32 Nuzlocke_IsGraveyardBox(u8 boxId);  // TRUE for PC boxes 13 and 14
+u8 Nuzlocke_GetFirstGraveyardBox(void);    // box index 12 ("Graveyard 1")
+u8 Nuzlocke_GetLastGraveyardBox(void);     // box index 13 ("Graveyard 2")
+u8 Nuzlocke_GetLivingBoxCount(void);       // number of normal boxes (12)
+
 #endif // GUARD_NUZLOCKE_H

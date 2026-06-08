@@ -339,6 +339,9 @@ static void CreatePCMultichoice(void)
         pixelWidth = DisplayTextAndGetWidth(sPCNameStrings[i], pixelWidth);
     }
 
+    // Nuzlocke (Rule 3): account for the "Graveyard's PC" entry width.
+    pixelWidth = DisplayTextAndGetWidth(gText_GraveyardsPC, pixelWidth);
+
     if (FlagGet(FLAG_SYS_GAME_CLEAR))
     {
         pixelWidth = DisplayTextAndGetWidth(gText_HallOfFame, pixelWidth);
@@ -346,21 +349,22 @@ static void CreatePCMultichoice(void)
 
     width = ConvertPixelWidthToTileWidth(pixelWidth);
 
-    // Include Hall of Fame option if player is champion
+    // Row order: Someone's PC, Graveyard's PC, Player's PC, [Hall of Fame], Log Off.
+    // Include Hall of Fame option if player is champion.
     if (FlagGet(FLAG_SYS_GAME_CLEAR))
+    {
+        numChoices = 5;
+        windowId = CreateWindowFromRect(0, 0, width, 10);
+        SetStandardWindowBorderStyle(windowId, FALSE);
+        AddTextPrinterParameterized(windowId, FONT_NORMAL, gText_HallOfFame, x, 49, TEXT_SKIP_DRAW, NULL);
+        AddTextPrinterParameterized(windowId, FONT_NORMAL, gText_LogOff, x, 65, TEXT_SKIP_DRAW, NULL);
+    }
+    else
     {
         numChoices = 4;
         windowId = CreateWindowFromRect(0, 0, width, 8);
         SetStandardWindowBorderStyle(windowId, FALSE);
-        AddTextPrinterParameterized(windowId, FONT_NORMAL, gText_HallOfFame, x, 33, TEXT_SKIP_DRAW, NULL);
         AddTextPrinterParameterized(windowId, FONT_NORMAL, gText_LogOff, x, 49, TEXT_SKIP_DRAW, NULL);
-    }
-    else
-    {
-        numChoices = 3;
-        windowId = CreateWindowFromRect(0, 0, width, 6);
-        SetStandardWindowBorderStyle(windowId, FALSE);
-        AddTextPrinterParameterized(windowId, FONT_NORMAL, gText_LogOff, x, 33, TEXT_SKIP_DRAW, NULL);
     }
 
     // Change PC name if player has met Lanette
@@ -369,8 +373,11 @@ static void CreatePCMultichoice(void)
     else
         AddTextPrinterParameterized(windowId, FONT_NORMAL, gText_SomeonesPC, x, 1, TEXT_SKIP_DRAW, NULL);
 
+    // Nuzlocke (Rule 3): Graveyard's PC sits directly below Someone's PC.
+    AddTextPrinterParameterized(windowId, FONT_NORMAL, gText_GraveyardsPC, x, 17, TEXT_SKIP_DRAW, NULL);
+
     StringExpandPlaceholders(gStringVar4, gText_PlayersPC);
-    PrintPlayerNameOnWindow(windowId, gStringVar4, x, 17);
+    PrintPlayerNameOnWindow(windowId, gStringVar4, x, 33);
     InitMenuInUpperLeftCornerNormal(windowId, numChoices, 0);
     CopyWindowToVram(windowId, COPYWIN_FULL);
     InitMultichoiceCheckWrap(FALSE, numChoices, windowId, MULTI_PC);

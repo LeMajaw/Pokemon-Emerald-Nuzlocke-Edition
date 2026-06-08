@@ -17,10 +17,19 @@ EventScript_PCMainMenu::
 EventScript_AccessPC::
 	switch VAR_RESULT
 	case 0, EventScript_AccessPokemonStorage
-	case 1, EventScript_AccessPlayersPC
-	case 2, EventScript_AccessHallOfFame
-	case 3, EventScript_TurnOffPC
+	case 1, EventScript_AccessGraveyard
+	case 2, EventScript_AccessPlayersPC
+	case 3, EventScript_AccessHallOfFame
+	case 4, EventScript_TurnOffPC
 	case MULTI_B_PRESSED, EventScript_TurnOffPC
+	end
+
+@ Nuzlocke (Rule 3): dedicated read-only memorial view of the Graveyard boxes.
+EventScript_AccessGraveyard::
+	playse SE_PC_LOGIN
+	msgbox gText_StorageSystemOpened, MSGBOX_DEFAULT
+	special ShowGraveyardPC
+	goto EventScript_PCMainMenu
 	end
 
 EventScript_AccessPlayersPC::

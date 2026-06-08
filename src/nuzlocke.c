@@ -1,18 +1,45 @@
 #include "global.h"
 #include "battle.h"
+#include "event_data.h"
 #include "pokemon.h"
 #include "pokemon_storage_system.h"
 #include "nuzlocke.h"
 #include "constants/battle.h"
+#include "constants/flags.h"
 #include "constants/species.h"
+
+// One-time "Graveyard initialized" marker. Reuses an existing unused flag, so
+// no new save data is introduced and the save format is unchanged. Once set,
+// boxes 13/14 are exclusively the Graveyard.
+#define FLAG_NUZLOCKE_GRAVEYARD_READY FLAG_UNUSED_0x020
 
 // Nuzlocke core implementation. See docs/NuzlockeSpecification.md.
 //
 // The Graveyard occupies the last two PC boxes. Living storage uses the
 // remaining boxes (1..12). "Dead" means "lives in a Graveyard box" - there is
 // no extra save data, so existing saves remain compatible.
-#define GRAVEYARD_BOX_1 (TOTAL_BOXES_COUNT - 2) // PC box 13
-#define GRAVEYARD_BOX_2 (TOTAL_BOXES_COUNT - 1) // PC box 14
+#define GRAVEYARD_BOX_1 (TOTAL_BOXES_COUNT - 2) // PC box 13 ("Graveyard 1")
+#define GRAVEYARD_BOX_2 (TOTAL_BOXES_COUNT - 1) // PC box 14 ("Graveyard 2")
+
+bool32 Nuzlocke_IsGraveyardBox(u8 boxId)
+{
+    return (boxId == GRAVEYARD_BOX_1 || boxId == GRAVEYARD_BOX_2);
+}
+
+u8 Nuzlocke_GetFirstGraveyardBox(void)
+{
+    return GRAVEYARD_BOX_1;
+}
+
+u8 Nuzlocke_GetLastGraveyardBox(void)
+{
+    return GRAVEYARD_BOX_2;
+}
+
+u8 Nuzlocke_GetLivingBoxCount(void)
+{
+    return TOTAL_BOXES_COUNT - 2;
+}
 
 bool32 Nuzlocke_BattleCountsAsDeath(u32 battleTypeFlags)
 {
@@ -89,8 +116,62 @@ void Nuzlocke_ProcessPartyDeaths(void)
     }
 }
 
+// Moves a single boxed Pokemon into the first free slot of a living box
+// (0..11). Returns TRUE on success.
+static bool32 TryRelocateToLivingBox(struct BoxPokemon *src)
+{
+    u32 box;
+    s16 slot;
+
+    for (box = 0; box < GRAVEYARD_BOX_1; box++)
+    {
+        slot = GetFirstFreeBoxSpot(box);
+        if (slot >= 0)
+        {
+            SetBoxMonAt(box, slot, src);
+            return TRUE;
+        }
+    }
+    return FALSE;
+}
+
+// Save-compatibility relocation (Rule 3.2). Runs exactly once, before any dead
+// Pokemon is ever placed in the Graveyard. Any *living* Pokemon found in boxes
+// 13/14 in a pre-hack save is moved to the first free slot in boxes 1..12, so
+// the Graveyard boxes start empty and no living Pokemon is ever stranded or
+// turned into a memorial.
+void Nuzlocke_InitGraveyardIfNeeded(void)
+{
+    u32 box, pos;
+
+    if (FlagGet(FLAG_NUZLOCKE_GRAVEYARD_READY))
+        return;
+
+    for (box = GRAVEYARD_BOX_1; box <= GRAVEYARD_BOX_2; box++)
+    {
+        for (pos = 0; pos < IN_BOX_COUNT; pos++)
+        {
+            struct BoxPokemon *mon = GetBoxedMonPtr(box, pos);
+
+            if (GetBoxMonData(mon, MON_DATA_SPECIES, NULL) == SPECIES_NONE)
+                continue;
+
+            if (TryRelocateToLivingBox(mon))
+                ZeroBoxMonAt(box, pos);
+            // If boxes 1..12 are somehow completely full (360 slots), leave the
+            // mon in place rather than delete it - never strand or lose a mon.
+        }
+    }
+
+    FlagSet(FLAG_NUZLOCKE_GRAVEYARD_READY);
+}
+
 void Nuzlocke_OnBattleEnd(void)
 {
+    // Ensure the Graveyard boxes are cleared of any pre-hack living Pokemon
+    // before the first death is ever placed there.
+    Nuzlocke_InitGraveyardIfNeeded();
+
     if (Nuzlocke_BattleCountsAsDeath(gBattleTypeFlags))
         Nuzlocke_ProcessPartyDeaths();
 }

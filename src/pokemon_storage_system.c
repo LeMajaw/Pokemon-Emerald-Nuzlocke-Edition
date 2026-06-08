@@ -18,6 +18,7 @@
 #include "mail.h"
 #include "main.h"
 #include "menu.h"
+#include "nuzlocke.h"
 #include "mon_markings.h"
 #include "naming_screen.h"
 #include "overworld.h"
@@ -575,6 +576,23 @@ EWRAM_DATA static bool8 sIsMonBeingMoved = 0;
 EWRAM_DATA static u8 sMovingMonOrigBoxId = 0;
 EWRAM_DATA static u8 sMovingMonOrigBoxPos = 0;
 EWRAM_DATA static bool8 sAutoActionOn = 0;
+// Nuzlocke (Rule 3): runtime-only flag (never saved). TRUE while the player is
+// viewing the Graveyard's PC; FALSE for the normal "Someone's PC".
+EWRAM_DATA static bool8 sStorageGraveyardMode = FALSE;
+
+// Lowest / highest box index the player may navigate to in the current view.
+// Someone's PC is limited to the living boxes (0..11); the Graveyard's PC is
+// limited to the two Graveyard boxes (12..13).
+static u8 GetStorageMinBox(void)
+{
+    return sStorageGraveyardMode ? Nuzlocke_GetFirstGraveyardBox() : 0;
+}
+
+static u8 GetStorageMaxBox(void)
+{
+    return sStorageGraveyardMode ? Nuzlocke_GetLastGraveyardBox()
+                                 : (Nuzlocke_GetLivingBoxCount() - 1);
+}
 
 // Main tasks
 static void EnterPokeStorage(u8);
@@ -797,6 +815,7 @@ static void SpriteCB_IncomingBoxTitle(struct Sprite *);
 static void SpriteCB_OutgoingBoxTitle(struct Sprite *);
 static void CycleBoxTitleColor(void);
 static s16 GetBoxTitleBaseX(const u8 *);
+static const u8 *GetDisplayBoxName(u8);
 
 // Wallpaper
 static void SetWallpaperForCurrentBox(u8);
@@ -1527,6 +1546,7 @@ enum {
     STATE_HANDLE_INPUT,
     STATE_ERROR_MSG,
     STATE_ENTER_PC,
+    STATE_GRAVEYARD_ENTER, // Nuzlocke: enter the Graveyard's PC directly (no option menu)
 };
 
 #define tState          data[0]
@@ -1644,14 +1664,41 @@ static void Task_PCMainMenu(u8 taskId)
             DestroyTask(taskId);
         }
         break;
+    case STATE_GRAVEYARD_ENTER:
+        // Nuzlocke (Rule 3): enter the Graveyard's PC directly. No option menu
+        // and no menu window were created, so none is removed here.
+        if (!gPaletteFade.active)
+        {
+            CleanupOverworldWindowsAndTilemaps();
+            EnterPokeStorage(OPTION_MOVE_ITEMS);
+            DestroyTask(taskId);
+        }
+        break;
     }
 }
 
 void ShowPokemonStorageSystemPC(void)
 {
-    u8 taskId = CreateTask(Task_PCMainMenu, 80);
+    u8 taskId;
+    sStorageGraveyardMode = FALSE; // Someone's PC: the normal living-box view.
+    taskId = CreateTask(Task_PCMainMenu, 80);
     gTasks[taskId].tState = 0;
     gTasks[taskId].tSelectedOption = 0;
+    LockPlayerFieldControls();
+}
+
+// Nuzlocke (Rule 3): open the dedicated Graveyard's PC - a read-only memorial
+// view of the two Graveyard boxes (13/14). The underlying mode (OPTION_MOVE_ITEMS)
+// locks all Pokemon movement, so dead Pokemon cannot be withdrawn, deposited,
+// moved or reordered. The view opens on "Graveyard 1".
+void ShowGraveyardPC(void)
+{
+    u8 taskId;
+    sStorageGraveyardMode = TRUE;
+    SetCurrentBox(Nuzlocke_GetFirstGraveyardBox());
+    taskId = CreateTask(Task_PCMainMenu, 80);
+    gTasks[taskId].tState = STATE_GRAVEYARD_ENTER;
+    FadeScreen(FADE_TO_BLACK, 0);
     LockPlayerFieldControls();
 }
 
@@ -1907,14 +1954,16 @@ static void ChooseBoxMenu_DestroySprites(void)
 
 static void ChooseBoxMenu_MoveRight(void)
 {
-    if (++sChooseBoxMenu->curBox >= TOTAL_BOXES_COUNT)
-        sChooseBoxMenu->curBox = 0;
+    // Nuzlocke (Rule 3): the box-jump carousel never reaches the Graveyard
+    // boxes from Someone's PC.
+    if (++sChooseBoxMenu->curBox > GetStorageMaxBox())
+        sChooseBoxMenu->curBox = GetStorageMinBox();
     ChooseBoxMenu_PrintInfo();
 }
 
 static void ChooseBoxMenu_MoveLeft(void)
 {
-    sChooseBoxMenu->curBox = (sChooseBoxMenu->curBox == 0 ? TOTAL_BOXES_COUNT - 1 : sChooseBoxMenu->curBox - 1);
+    sChooseBoxMenu->curBox = (sChooseBoxMenu->curBox == GetStorageMinBox() ? GetStorageMaxBox() : sChooseBoxMenu->curBox - 1);
     ChooseBoxMenu_PrintInfo();
 }
 
@@ -2319,8 +2368,8 @@ static void Task_PokeStorageMain(u8 taskId)
         case INPUT_SCROLL_RIGHT:
             PlaySE(SE_SELECT);
             sStorage->newCurrBoxId = StorageGetCurrentBox() + 1;
-            if (sStorage->newCurrBoxId >= TOTAL_BOXES_COUNT)
-                sStorage->newCurrBoxId = 0;
+            if (sStorage->newCurrBoxId > GetStorageMaxBox())
+                sStorage->newCurrBoxId = GetStorageMinBox();
             if (sStorage->boxOption != OPTION_MOVE_ITEMS)
             {
                 SetUpScrollToBox(sStorage->newCurrBoxId);
@@ -2335,8 +2384,8 @@ static void Task_PokeStorageMain(u8 taskId)
         case INPUT_SCROLL_LEFT:
             PlaySE(SE_SELECT);
             sStorage->newCurrBoxId = StorageGetCurrentBox() - 1;
-            if (sStorage->newCurrBoxId < 0)
-                sStorage->newCurrBoxId = TOTAL_BOXES_COUNT - 1;
+            if (sStorage->newCurrBoxId < GetStorageMinBox())
+                sStorage->newCurrBoxId = GetStorageMaxBox();
             if (sStorage->boxOption != OPTION_MOVE_ITEMS)
             {
                 SetUpScrollToBox(sStorage->newCurrBoxId);
@@ -5497,10 +5546,10 @@ static void InitBoxTitle(u8 boxId)
     sStorage->boxTitleAltPalOffset = OBJ_PLTT_ID(tagIndex) + 14;
     sStorage->wallpaperPalBits |= (1 << 16) << tagIndex;
 
-    StringCopyPadded(sStorage->boxTitleText, GetBoxNamePtr(boxId), 0, BOX_NAME_LENGTH);
+    StringCopyPadded(sStorage->boxTitleText, GetDisplayBoxName(boxId), 0, BOX_NAME_LENGTH);
     DrawTextWindowAndBufferTiles(sStorage->boxTitleText, sStorage->boxTitleTiles, 0, 0, 2);
     LoadSpriteSheet(&spriteSheet);
-    x = GetBoxTitleBaseX(GetBoxNamePtr(boxId));
+    x = GetBoxTitleBaseX(GetDisplayBoxName(boxId));
 
     // Title is split across two sprites
     for (i = 0; i < 2; i++)
@@ -5510,6 +5559,20 @@ static void InitBoxTitle(u8 boxId)
         StartSpriteAnim(sStorage->curBoxTitleSprites[i], i);
     }
     sStorage->boxTitleCycleId = 0;
+}
+
+// Nuzlocke (Rule 3): the two Graveyard boxes display as "Graveyard 1" /
+// "Graveyard 2" instead of their stored box names.
+static const u8 sText_Graveyard1[] = _("Graveyard 1");
+static const u8 sText_Graveyard2[] = _("Graveyard 2");
+
+static const u8 *GetDisplayBoxName(u8 boxId)
+{
+    if (boxId == Nuzlocke_GetFirstGraveyardBox())
+        return sText_Graveyard1;
+    if (boxId == Nuzlocke_GetLastGraveyardBox())
+        return sText_Graveyard2;
+    return GetBoxNamePtr(boxId);
 }
 
 // Sprite data for moving title text
@@ -5542,11 +5605,11 @@ static void CreateIncomingBoxTitle(u8 boxId, s8 direction)
         template.paletteTag = PALTAG_BOX_TITLE;
     }
 
-    StringCopyPadded(sStorage->boxTitleText, GetBoxNamePtr(boxId), 0, BOX_NAME_LENGTH);
+    StringCopyPadded(sStorage->boxTitleText, GetDisplayBoxName(boxId), 0, BOX_NAME_LENGTH);
     DrawTextWindowAndBufferTiles(sStorage->boxTitleText, sStorage->boxTitleTiles, 0, 0, 2);
     LoadSpriteSheet(&spriteSheet);
     LoadPalette(sBoxTitleColors[GetBoxWallpaper(boxId)], palOffset, sizeof(sBoxTitleColors[0]));
-    x = GetBoxTitleBaseX(GetBoxNamePtr(boxId));
+    x = GetBoxTitleBaseX(GetDisplayBoxName(boxId));
     adjustedX = x;
     adjustedX += direction * 192;
 

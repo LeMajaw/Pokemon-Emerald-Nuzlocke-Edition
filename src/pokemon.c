@@ -18,6 +18,7 @@
 #include "main.h"
 #include "overworld.h"
 #include "m4a.h"
+#include "nuzlocke.h"
 #include "party_menu.h"
 #include "pokedex.h"
 #include "pokeblock.h"
@@ -4440,19 +4441,23 @@ static u8 CopyMonToPC(struct Pokemon *mon)
 
     do
     {
-        for (boxPos = 0; boxPos < IN_BOX_COUNT; boxPos++)
+        // Nuzlocke (Rule 3): never store a caught Pokemon in a Graveyard box.
+        if (!Nuzlocke_IsGraveyardBox(boxNo))
         {
-            struct BoxPokemon *checkingMon = GetBoxedMonPtr(boxNo, boxPos);
-            if (GetBoxMonData(checkingMon, MON_DATA_SPECIES, NULL) == SPECIES_NONE)
+            for (boxPos = 0; boxPos < IN_BOX_COUNT; boxPos++)
             {
-                MonRestorePP(mon);
-                CopyMon(checkingMon, &mon->box, sizeof(mon->box));
-                gSpecialVar_MonBoxId = boxNo;
-                gSpecialVar_MonBoxPos = boxPos;
-                if (GetPCBoxToSendMon() != boxNo)
-                    FlagClear(FLAG_SHOWN_BOX_WAS_FULL_MESSAGE);
-                VarSet(VAR_PC_BOX_TO_SEND_MON, boxNo);
-                return MON_GIVEN_TO_PC;
+                struct BoxPokemon *checkingMon = GetBoxedMonPtr(boxNo, boxPos);
+                if (GetBoxMonData(checkingMon, MON_DATA_SPECIES, NULL) == SPECIES_NONE)
+                {
+                    MonRestorePP(mon);
+                    CopyMon(checkingMon, &mon->box, sizeof(mon->box));
+                    gSpecialVar_MonBoxId = boxNo;
+                    gSpecialVar_MonBoxPos = boxPos;
+                    if (GetPCBoxToSendMon() != boxNo)
+                        FlagClear(FLAG_SHOWN_BOX_WAS_FULL_MESSAGE);
+                    VarSet(VAR_PC_BOX_TO_SEND_MON, boxNo);
+                    return MON_GIVEN_TO_PC;
+                }
             }
         }
 
