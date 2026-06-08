@@ -25,6 +25,7 @@
 #include "scanline_effect.h"
 #include "script.h"
 #include "sound.h"
+#include "nuzlocke.h"
 #include "start_menu.h"
 #include "task.h"
 #include "text.h"
@@ -292,6 +293,15 @@ void FieldCB_WarpExitFadeFromBlack(void)
         Overworld_PlaySpecialMapMusic();
     FadeInFromBlack();
     SetUpWarpExitTask();
+    LockPlayerFieldControls();
+}
+
+// Nuzlocke (Rule 5): on a lost run, fade in then immediately run the Game Over
+// script (message -> memorial save -> title screen). Used as gFieldCallback.
+void FieldCB_NuzlockeGameOver(void)
+{
+    FadeInFromBlack();
+    ScriptContext_SetupScript(EventScript_NuzlockeGameOver);
     LockPlayerFieldControls();
 }
 

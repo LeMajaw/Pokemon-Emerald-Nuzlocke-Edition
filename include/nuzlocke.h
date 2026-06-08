@@ -23,6 +23,18 @@ void Nuzlocke_OnBattleEnd(void);
 void Nuzlocke_RecordFrontierFaints(void);
 void Nuzlocke_ApplyFrontierDeaths(void);
 
+// Run-loss / memorial save (Rule 5).
+// TRUE if any Pokemon remains in the party or living boxes (1..12).
+bool32 Nuzlocke_HasLivingPokemon(void);
+// Game Over special: write the memorial save and return to the title screen.
+void Nuzlocke_SaveMemorialAndReturnToTitle(void);
+
+// Game Over field script (shown when a run is lost).
+extern const u8 EventScript_NuzlockeGameOver[];
+
+// gFieldCallback that runs the Game Over script on field entry (Rule 5).
+void FieldCB_NuzlockeGameOver(void);
+
 // One-time save-compatibility migration: relocates any living Pokemon found in
 // the Graveyard boxes (13/14) of a pre-hack save into boxes 1..12 (Rule 3.2).
 void Nuzlocke_InitGraveyardIfNeeded(void);

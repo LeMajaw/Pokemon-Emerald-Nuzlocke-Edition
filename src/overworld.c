@@ -37,6 +37,7 @@
 #include "mirage_tower.h"
 #include "money.h"
 #include "new_game.h"
+#include "nuzlocke.h"
 #include "palette.h"
 #include "play_time.h"
 #include "random.h"
@@ -1560,7 +1561,13 @@ void CB2_WhiteOut(void)
         ResetInitialPlayerAvatarState();
         ScriptContext_Init();
         UnlockPlayerFieldControls();
-        gFieldCallback = FieldCB_WarpExitFadeFromBlack;
+        // Nuzlocke (Rule 5): if the whiteout leaves no living Pokemon anywhere,
+        // the run is lost - show Game Over and return to the title instead of
+        // resuming normal play.
+        if (Nuzlocke_HasLivingPokemon())
+            gFieldCallback = FieldCB_WarpExitFadeFromBlack;
+        else
+            gFieldCallback = FieldCB_NuzlockeGameOver;
         state = 0;
         DoMapLoadLoop(&state);
         SetFieldVBlankCallback();
@@ -1747,7 +1754,12 @@ void CB2_ContinueSavedGame(void)
     else
     {
         TryPutTodaysRivalTrainerOnAir();
-        gFieldCallback = FieldCB_FadeTryShowMapPopup;
+        // Nuzlocke (Rule 5): a memorial save (no living Pokemon) re-triggers the
+        // Game Over on load, so normal play cannot resume from a lost run.
+        if (Nuzlocke_HasLivingPokemon())
+            gFieldCallback = FieldCB_FadeTryShowMapPopup;
+        else
+            gFieldCallback = FieldCB_NuzlockeGameOver;
         SetMainCallback1(CB1_Overworld);
         CB2_ReturnToField();
     }

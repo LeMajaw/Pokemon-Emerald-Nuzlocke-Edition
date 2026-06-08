@@ -1,8 +1,11 @@
 #include "global.h"
 #include "battle.h"
 #include "event_data.h"
+#include "main.h"
 #include "pokemon.h"
 #include "pokemon_storage_system.h"
+#include "save.h"
+#include "title_screen.h"
 #include "nuzlocke.h"
 #include "constants/battle.h"
 #include "constants/flags.h"
@@ -258,4 +261,40 @@ void Nuzlocke_OnBattleEnd(void)
 
     if (Nuzlocke_BattleCountsAsDeath(gBattleTypeFlags))
         Nuzlocke_ProcessPartyDeaths();
+}
+
+// Run-loss detection (Rule 5). The run is lost only when no Pokemon at all
+// remain in the party or in the living boxes (1..12). Graveyard boxes (13/14)
+// never count. Eggs count as "not yet lost" since they can still hatch.
+bool32 Nuzlocke_HasLivingPokemon(void)
+{
+    u32 i, box, pos;
+
+    for (i = 0; i < PARTY_SIZE; i++)
+    {
+        if (GetMonData(&gPlayerParty[i], MON_DATA_SPECIES, NULL) != SPECIES_NONE)
+            return TRUE;
+    }
+
+    for (box = 0; box < Nuzlocke_GetLivingBoxCount(); box++)
+    {
+        for (pos = 0; pos < IN_BOX_COUNT; pos++)
+        {
+            if (GetBoxMonData(GetBoxedMonPtr(box, pos), MON_DATA_SPECIES, NULL) != SPECIES_NONE)
+                return TRUE;
+        }
+    }
+
+    return FALSE;
+}
+
+// Game Over special (Rule 5). Writes the current state as the "memorial save"
+// (a normal save - never deletes or corrupts), then returns to the title
+// screen. Because the saved state still has no living Pokemon, loading it again
+// re-triggers the run-loss check and the Game Over, so normal play cannot
+// resume from a lost run.
+void Nuzlocke_SaveMemorialAndReturnToTitle(void)
+{
+    TrySavingData(SAVE_NORMAL);
+    SetMainCallback2(CB2_InitTitleScreen);
 }
