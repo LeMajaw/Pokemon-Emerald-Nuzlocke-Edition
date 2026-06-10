@@ -30,6 +30,7 @@
 #include "malloc.h"
 #include "m4a.h"
 #include "palette.h"
+#include "nuzlocke.h"
 #include "party_menu.h"
 #include "pokeball.h"
 #include "pokedex.h"
@@ -5243,6 +5244,11 @@ static void ReturnFromBattleToOverworld(void)
 #endif
             SetRoamerInactive();
     }
+
+    // Nuzlocke (Rules 2, 10, 15): apply permanent death once the battle is
+    // over and the party is final, before returning to the overworld (and
+    // before any Pokemon Center / whiteout healing can touch a fainted mon).
+    Nuzlocke_OnBattleEnd();
 
     m4aSongNumStop(SE_LOW_HEALTH);
     SetMainCallback2(gMain.savedCallback);

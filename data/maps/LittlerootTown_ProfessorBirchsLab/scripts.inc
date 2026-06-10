@@ -111,9 +111,8 @@ LittlerootTown_ProfessorBirchsLab_EventScript_GiveStarterEvent::
 	waitmessage
 	playfanfare MUS_OBTAIN_ITEM
 	waitfanfare
-	msgbox LittlerootTown_ProfessorBirchsLab_Text_WhyNotGiveNicknameToMon, MSGBOX_YESNO
-	goto_if_eq VAR_RESULT, YES, LittlerootTown_ProfessorBirchsLab_EventScript_NicknameStarter
-	goto_if_eq VAR_RESULT, NO, LittlerootTown_ProfessorBirchsLab_EventScript_GoSeeRival
+	@ Nuzlocke (Rule 1): forced nickname. Skip the Yes/No prompt and name the starter.
+	goto LittlerootTown_ProfessorBirchsLab_EventScript_NicknameStarter
 	end
 
 LittlerootTown_ProfessorBirchsLab_EventScript_NicknameStarter::
@@ -343,7 +342,7 @@ LittlerootTown_ProfessorBirchsLab_EventScript_GiveCyndaquil::
 LittlerootTown_ProfessorBirchsLab_EventScript_SendCyndaquilToParty::
 	call LittlerootTown_ProfessorBirchsLab_EventScript_ReceivedJohtoStarter
 	removeobject LOCALID_BIRCHS_LAB_CYNDAQUIL_BALL
-	msgbox gText_NicknameThisPokemon, MSGBOX_YESNO
+	setvar VAR_RESULT, YES @ Nuzlocke (Rule 1): force nickname, skip the Yes/No prompt
 	goto_if_eq VAR_RESULT, NO, LittlerootTown_ProfessorBirchsLab_EventScript_ReceivedCyndaquil
 	call Common_EventScript_GetGiftMonPartySlot
 	call Common_EventScript_NameReceivedPartyMon
@@ -353,7 +352,7 @@ LittlerootTown_ProfessorBirchsLab_EventScript_SendCyndaquilToParty::
 LittlerootTown_ProfessorBirchsLab_EventScript_SendCyndaquilToPC::
 	call LittlerootTown_ProfessorBirchsLab_EventScript_ReceivedJohtoStarter
 	removeobject LOCALID_BIRCHS_LAB_CYNDAQUIL_BALL
-	msgbox gText_NicknameThisPokemon, MSGBOX_YESNO
+	setvar VAR_RESULT, YES @ Nuzlocke (Rule 1): force nickname, skip the Yes/No prompt
 	goto_if_eq VAR_RESULT, NO, LittlerootTown_ProfessorBirchsLab_EventScript_CyndaquilTransferredToPC
 	call Common_EventScript_NameReceivedBoxMon
 	goto LittlerootTown_ProfessorBirchsLab_EventScript_CyndaquilTransferredToPC
@@ -384,7 +383,7 @@ LittlerootTown_ProfessorBirchsLab_EventScript_GiveTotodile::
 LittlerootTown_ProfessorBirchsLab_EventScript_SendTotodileToParty::
 	call LittlerootTown_ProfessorBirchsLab_EventScript_ReceivedJohtoStarter
 	removeobject LOCALID_BIRCHS_LAB_TOTODILE_BALL
-	msgbox gText_NicknameThisPokemon, MSGBOX_YESNO
+	setvar VAR_RESULT, YES @ Nuzlocke (Rule 1): force nickname, skip the Yes/No prompt
 	goto_if_eq VAR_RESULT, NO, LittlerootTown_ProfessorBirchsLab_EventScript_ReceivedTotodile
 	call Common_EventScript_GetGiftMonPartySlot
 	call Common_EventScript_NameReceivedPartyMon
@@ -394,7 +393,7 @@ LittlerootTown_ProfessorBirchsLab_EventScript_SendTotodileToParty::
 LittlerootTown_ProfessorBirchsLab_EventScript_SendTotodileToPC::
 	call LittlerootTown_ProfessorBirchsLab_EventScript_ReceivedJohtoStarter
 	removeobject LOCALID_BIRCHS_LAB_TOTODILE_BALL
-	msgbox gText_NicknameThisPokemon, MSGBOX_YESNO
+	setvar VAR_RESULT, YES @ Nuzlocke (Rule 1): force nickname, skip the Yes/No prompt
 	goto_if_eq VAR_RESULT, NO, LittlerootTown_ProfessorBirchsLab_EventScript_TotodileTransferredToPC
 	call Common_EventScript_NameReceivedBoxMon
 	goto LittlerootTown_ProfessorBirchsLab_EventScript_TotodileTransferredToPC
@@ -425,7 +424,7 @@ LittlerootTown_ProfessorBirchsLab_EventScript_GiveChikorita::
 LittlerootTown_ProfessorBirchsLab_EventScript_SendChikoritaToParty::
 	call LittlerootTown_ProfessorBirchsLab_EventScript_ReceivedJohtoStarter
 	removeobject LOCALID_BIRCHS_LAB_CHIKORITA_BALL
-	msgbox gText_NicknameThisPokemon, MSGBOX_YESNO
+	setvar VAR_RESULT, YES @ Nuzlocke (Rule 1): force nickname, skip the Yes/No prompt
 	goto_if_eq VAR_RESULT, NO, LittlerootTown_ProfessorBirchsLab_EventScript_ReceivedChikorita
 	call Common_EventScript_GetGiftMonPartySlot
 	call Common_EventScript_NameReceivedPartyMon
@@ -435,7 +434,7 @@ LittlerootTown_ProfessorBirchsLab_EventScript_SendChikoritaToParty::
 LittlerootTown_ProfessorBirchsLab_EventScript_SendChikoritaToPC::
 	call LittlerootTown_ProfessorBirchsLab_EventScript_ReceivedJohtoStarter
 	removeobject LOCALID_BIRCHS_LAB_CHIKORITA_BALL
-	msgbox gText_NicknameThisPokemon, MSGBOX_YESNO
+	setvar VAR_RESULT, YES @ Nuzlocke (Rule 1): force nickname, skip the Yes/No prompt
 	goto_if_eq VAR_RESULT, NO, LittlerootTown_ProfessorBirchsLab_EventScript_ChikoritaTransferredToPC
 	call Common_EventScript_NameReceivedBoxMon
 	goto LittlerootTown_ProfessorBirchsLab_EventScript_ChikoritaTransferredToPC
@@ -515,6 +514,12 @@ LittlerootTown_ProfessorBirchsLab_EventScript_GivePokedex::
 	checkplayergender
 	call_if_eq VAR_RESULT, MALE, LittlerootTown_ProfessorBirchsLab_EventScript_MayGivePokeBalls
 	call_if_eq VAR_RESULT, FEMALE, LittlerootTown_ProfessorBirchsLab_EventScript_BrendanGivePokeBalls
+	@ Nuzlocke (Rule 16): the challenge officially begins the moment the rival
+	@ has handed over the Poke Balls. FLAG_ADVENTURE_STARTED (set below) is the
+	@ activation gate for first-encounter tracking.
+	playfanfare MUS_OBTAIN_SYMBOL
+	msgbox LittlerootTown_ProfessorBirchsLab_Text_NuzlockeChallengeBegins, MSGBOX_DEFAULT
+	waitfanfare
 	setvar VAR_BIRCH_LAB_STATE, 5
 	setflag FLAG_ADVENTURE_STARTED
 	setvar VAR_OLDALE_TOWN_STATE, 1
@@ -800,6 +805,13 @@ LittlerootTown_ProfessorBirchsLab_Text_HeyYourBagsFull:
 LittlerootTown_ProfessorBirchsLab_Text_BrendanWhereShouldIGoNext:
 	.string "BRENDAN: Where should I look for\n"
 	.string "POKéMON next…$"
+
+LittlerootTown_ProfessorBirchsLab_Text_NuzlockeChallengeBegins:
+	.string "The NUZLOCKE challenge has\n"
+	.string "officially begun!\p"
+	.string "Only your first encounter in each\n"
+	.string "area may be caught.\p"
+	.string "Make every battle count…$"
 
 LittlerootTown_ProfessorBirchsLab_Text_SeriousLookingMachine:
 	.string "It's a serious-looking machine.\n"

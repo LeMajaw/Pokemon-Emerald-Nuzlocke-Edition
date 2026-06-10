@@ -177,6 +177,19 @@ BattleScript_ActionWatchesCarefully:
 	waitmessage B_WAIT_TIME_LONG
 	end2
 
+@ Nuzlocke (Rule 16): a blocked Safari Ball throw. The action costs the turn
+@ like any safari action, but no Safari Ball is consumed (the throw handler
+@ returns before decrementing gNumSafariBalls).
+BattleScript_NuzlockeSafariEncounterUsed::
+	printstring STRINGID_NUZLOCKEENCOUNTERUSED
+	waitmessage B_WAIT_TIME_LONG
+	end2
+
+BattleScript_NuzlockeSafariLegendaryBlocked::
+	printstring STRINGID_NUZLOCKELEGENDARYBLOCKED
+	waitmessage B_WAIT_TIME_LONG
+	end2
+
 BattleScript_ActionGetNear:
 	printfromtable gSafariGetNearStringIds
 	waitmessage B_WAIT_TIME_LONG

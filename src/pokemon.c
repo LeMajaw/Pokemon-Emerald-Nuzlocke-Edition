@@ -18,6 +18,7 @@
 #include "main.h"
 #include "overworld.h"
 #include "m4a.h"
+#include "nuzlocke.h"
 #include "party_menu.h"
 #include "pokedex.h"
 #include "pokeblock.h"
@@ -4440,19 +4441,23 @@ static u8 CopyMonToPC(struct Pokemon *mon)
 
     do
     {
-        for (boxPos = 0; boxPos < IN_BOX_COUNT; boxPos++)
+        // Nuzlocke (Rule 3): never store a caught Pokemon in a Graveyard box.
+        if (!Nuzlocke_IsGraveyardBox(boxNo))
         {
-            struct BoxPokemon *checkingMon = GetBoxedMonPtr(boxNo, boxPos);
-            if (GetBoxMonData(checkingMon, MON_DATA_SPECIES, NULL) == SPECIES_NONE)
+            for (boxPos = 0; boxPos < IN_BOX_COUNT; boxPos++)
             {
-                MonRestorePP(mon);
-                CopyMon(checkingMon, &mon->box, sizeof(mon->box));
-                gSpecialVar_MonBoxId = boxNo;
-                gSpecialVar_MonBoxPos = boxPos;
-                if (GetPCBoxToSendMon() != boxNo)
-                    FlagClear(FLAG_SHOWN_BOX_WAS_FULL_MESSAGE);
-                VarSet(VAR_PC_BOX_TO_SEND_MON, boxNo);
-                return MON_GIVEN_TO_PC;
+                struct BoxPokemon *checkingMon = GetBoxedMonPtr(boxNo, boxPos);
+                if (GetBoxMonData(checkingMon, MON_DATA_SPECIES, NULL) == SPECIES_NONE)
+                {
+                    MonRestorePP(mon);
+                    CopyMon(checkingMon, &mon->box, sizeof(mon->box));
+                    gSpecialVar_MonBoxId = boxNo;
+                    gSpecialVar_MonBoxPos = boxPos;
+                    if (GetPCBoxToSendMon() != boxNo)
+                        FlagClear(FLAG_SHOWN_BOX_WAS_FULL_MESSAGE);
+                    VarSet(VAR_PC_BOX_TO_SEND_MON, boxNo);
+                    return MON_GIVEN_TO_PC;
+                }
             }
         }
 
@@ -5014,38 +5019,21 @@ bool8 PokemonUseItemEffects(struct Pokemon *mon, u16 item, u8 partyIndex, u8 mov
                         break;
 
                     case 2: // ITEM4_HEAL_HP
-                        // If Revive, update number of times revive has been used
+                        // Nuzlocke (Rule 13): Revive and Max Revive can never
+                        // bring a Pokemon back to life. Any revive-flagged item
+                        // performs no HP restoration at all (it has no effect),
+                        // so a fainted Pokemon can never be made usable again.
                         if (effectFlags & (ITEM4_REVIVE >> 2))
                         {
-                            if (GetMonData(mon, MON_DATA_HP, NULL) != 0)
-                            {
-                                itemEffectParam++;
-                                break;
-                            }
-                            if (gMain.inBattle)
-                            {
-                                if (battler != MAX_BATTLERS_COUNT)
-                                {
-                                    gAbsentBattlerFlags &= ~gBitTable[battler];
-                                    CopyPlayerPartyMonToBattleData(battler, GetPartyIdFromBattlePartyId(gBattlerPartyIndexes[battler]));
-                                    if (GetBattlerSide(gActiveBattler) == B_SIDE_PLAYER && gBattleResults.numRevivesUsed < 255)
-                                        gBattleResults.numRevivesUsed++;
-                                }
-                                else
-                                {
-                                    gAbsentBattlerFlags &= ~gBitTable[gActiveBattler ^ 2];
-                                    if (GetBattlerSide(gActiveBattler) == B_SIDE_PLAYER && gBattleResults.numRevivesUsed < 255)
-                                        gBattleResults.numRevivesUsed++;
-                                }
-                            }
+                            effectFlags &= ~(ITEM4_REVIVE >> 2);
+                            itemEffectParam++; // consume the heal-amount parameter
+                            break;
                         }
-                        else
+                        // Normal healing items never restore a fainted (0 HP) mon.
+                        if (GetMonData(mon, MON_DATA_HP, NULL) == 0)
                         {
-                            if (GetMonData(mon, MON_DATA_HP, NULL) == 0)
-                            {
-                                itemEffectParam++;
-                                break;
-                            }
+                            itemEffectParam++;
+                            break;
                         }
 
                         // Get amount of HP to restore

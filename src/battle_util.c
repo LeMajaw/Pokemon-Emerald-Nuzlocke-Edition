@@ -24,6 +24,7 @@
 #include "event_data.h"
 #include "link.h"
 #include "field_weather.h"
+#include "nuzlocke.h"
 #include "constants/abilities.h"
 #include "constants/battle_anim.h"
 #include "constants/battle_move_effects.h"
@@ -552,6 +553,24 @@ void HandleAction_SafariZoneBallThrow(void)
     gBattlerAttacker = gBattlerByTurnOrder[gCurrentTurnActionNumber];
     gBattle_BG0_X = 0;
     gBattle_BG0_Y = 0;
+
+    // Nuzlocke (Rule 16): in the Safari Zone the ball is a battle action,
+    // not a Bag item, so the first-encounter block lives here. A blocked
+    // throw costs the turn like any safari action, but no Safari Ball is
+    // consumed and the battle continues.
+    if (Nuzlocke_IsBallTargetLegendary())
+    {
+        gBattlescriptCurrInstr = BattleScript_NuzlockeSafariLegendaryBlocked;
+        gCurrentActionFuncId = B_ACTION_EXEC_SCRIPT;
+        return;
+    }
+    if (Nuzlocke_IsCatchRuleActive() && Nuzlocke_IsCurrentCatchAreaConsumed())
+    {
+        gBattlescriptCurrInstr = BattleScript_NuzlockeSafariEncounterUsed;
+        gCurrentActionFuncId = B_ACTION_EXEC_SCRIPT;
+        return;
+    }
+
     gNumSafariBalls--;
     gLastUsedItem = ITEM_SAFARI_BALL;
     gBattlescriptCurrInstr = gBattlescriptsForBallThrow[ITEM_SAFARI_BALL];

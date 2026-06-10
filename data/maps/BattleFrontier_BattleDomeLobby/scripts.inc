@@ -64,6 +64,9 @@ BattleFrontier_BattleDomeLobby_EventScript_GiveBattlePoints::
 	dome_set DOME_DATA_HAS_WON_CHALLENGE, TRUE
 	dome_set DOME_DATA_WIN_STREAK_ACTIVE, TRUE
 	special LoadPlayerParty
+	@ Nuzlocke (Rule 11): apply frontier deaths to the restored party before it
+	@ is healed, so fallen Pokemon go to the Graveyard and are not revived.
+	special Nuzlocke_ApplyFrontierDeaths
 	special HealPlayerParty
 	goto BattleFrontier_BattleDomeLobby_EventScript_AskRecordBattle
 
@@ -78,6 +81,9 @@ BattleFrontier_BattleDomeLobby_EventScript_LostChallenge::
 	dome_set DOME_DATA_WIN_STREAK_ACTIVE, FALSE
 	dome_set DOME_DATA_ATTEMPTED_CHALLENGE, TRUE
 	special LoadPlayerParty
+	@ Nuzlocke (Rule 11): apply frontier deaths to the restored party before it
+	@ is healed, so fallen Pokemon go to the Graveyard and are not revived.
+	special Nuzlocke_ApplyFrontierDeaths
 	special HealPlayerParty
 BattleFrontier_BattleDomeLobby_EventScript_AskRecordBattle::
 	dome_save 0

@@ -410,22 +410,10 @@ CableClub_EventScript_ConfirmNumberAndRestart::
 	end
 
 CableClub_EventScript_TradeCenter::
-	copyvar VAR_0x8007, VAR_LAST_TALKED
-	call CableClub_EventScript_CheckPartyTradeRequirements
-	goto_if_eq VAR_RESULT, 0, CableClub_EventScript_AbortLink
-	call Common_EventScript_SaveGame
-	goto_if_eq VAR_RESULT, 0, CableClub_EventScript_AbortLink
-	message gText_PleaseWaitForLink
-	waitmessage
-	special TryTradeLinkup
-	goto_if_eq VAR_RESULT, LINKUP_SUCCESS, CableClub_EventScript_EnterTradeCenter
-	goto_if_eq VAR_RESULT, LINKUP_SOMEONE_NOT_READY, CableClub_EventScript_AbortLinkSomeoneNotReady
-	goto_if_eq VAR_RESULT, LINKUP_DIFF_SELECTIONS, CableClub_EventScript_AbortLinkDifferentSelections
-	goto_if_eq VAR_RESULT, LINKUP_WRONG_NUM_PLAYERS, CableClub_EventScript_AbortLinkIncorrectNumberOfParticipants
-	goto_if_eq VAR_RESULT, LINKUP_FAILED, CableClub_EventScript_AbortLink
-	goto_if_eq VAR_RESULT, LINKUP_CONNECTION_ERROR, CableClub_EventScript_AbortLinkConnectionError
-	goto_if_eq VAR_RESULT, LINKUP_PLAYER_NOT_READY, CableClub_EventScript_AbortLinkPlayerNotReady
-	goto_if_eq VAR_RESULT, LINKUP_PARTNER_NOT_READY, CableClub_EventScript_AbortLinkOtherTrainerNotReady
+	@ Nuzlocke (Rule 9): player-to-player trading is disabled to prevent
+	@ bypassing permanent death. Link battles (Colosseum) remain available.
+	msgbox CableClub_Text_TradingDisabledNuzlocke, MSGBOX_DEFAULT
+	release
 	end
 
 CableClub_EventScript_EnterTradeCenter::

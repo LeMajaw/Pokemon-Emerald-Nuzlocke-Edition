@@ -25,6 +25,7 @@
 #include "scanline_effect.h"
 #include "script.h"
 #include "sound.h"
+#include "nuzlocke.h"
 #include "start_menu.h"
 #include "task.h"
 #include "text.h"
@@ -292,6 +293,21 @@ void FieldCB_WarpExitFadeFromBlack(void)
         Overworld_PlaySpecialMapMusic();
     FadeInFromBlack();
     SetUpWarpExitTask();
+    LockPlayerFieldControls();
+}
+
+// Nuzlocke (Rule 5): on a lost run, fade in then immediately run the Game Over
+// script (message -> memorial save -> title screen). Used as gFieldCallback.
+void FieldCB_NuzlockeGameOver(void)
+{
+    // Fill the unfaded (destination) palette buffer with black so that the
+    // FadeInFromBlack transition goes from black to black, never revealing the
+    // Pokémon Center's pink tileset. The msgbox window calls LoadPalette()
+    // which writes its own colours to both palette buffers directly, so the
+    // dialog is still visible against the clean black background.
+    CpuFastFill16(RGB_BLACK, gPlttBufferUnfaded, PLTT_SIZE);
+    FadeInFromBlack();
+    ScriptContext_SetupScript(EventScript_NuzlockeGameOver);
     LockPlayerFieldControls();
 }
 

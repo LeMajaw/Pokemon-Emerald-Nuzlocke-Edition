@@ -247,6 +247,9 @@ const u8 gText_RepelEffectsLingered[] = _("But the effects of a REPEL\nlingered 
 const u8 gText_UsedVar2WildLured[] = _("{PLAYER} used the\n{STR_VAR_2}.\pWild POKéMON will be lured.{PAUSE_UNTIL_PRESS}");
 const u8 gText_UsedVar2WildRepelled[] = _("{PLAYER} used the\n{STR_VAR_2}.\pWild POKéMON will be repelled.{PAUSE_UNTIL_PRESS}");
 const u8 gText_BoxFull[] = _("The BOX is full.{PAUSE_UNTIL_PRESS}");
+// Nuzlocke (Rule 16): Poke Ball blocked in the Bag during wild battles.
+const u8 gText_NuzlockeEncounterUsed[] = _("This area's first encounter has\nalready been used!\pThe POKé BALL can't be thrown.{PAUSE_UNTIL_PRESS}");
+const u8 gText_NuzlockeLegendaryBlocked[] = _("LEGENDARY POKéMON can't be caught\nin this challenge!\pThe POKé BALL can't be thrown.{PAUSE_UNTIL_PRESS}");
 const u8 gText_PowderQty[] = _("POWDER QTY: {STR_VAR_1}{PAUSE_UNTIL_PRESS}");
 const u8 gText_TheField[] = _("the field");
 const u8 gText_TheBattle[] = _("the battle");
@@ -704,6 +707,7 @@ const u8 gText_Poke_Balls[] = _("POKé BALLS");
 const u8 gText_TMs_Hms[] = _("TMs & HMs");
 const u8 gText_Berries2[] = _("BERRIES");
 const u8 gText_SomeonesPC[] = _("SOMEONE'S PC");
+const u8 gText_GraveyardsPC[] = _("GRAVEYARD'S PC");
 const u8 gText_LanettesPC[] = _("LANETTE'S PC");
 const u8 gText_PlayersPC[] = _("{PLAYER}'s PC");
 const u8 gText_HallOfFame[] = _("HALL OF FAME");

@@ -655,6 +655,7 @@ EventScript_SetBrineyLocation_Route109::
 	.include "data/scripts/pkmn_center_nurse.inc"
 	.include "data/scripts/obtain_item.inc"
 	.include "data/scripts/record_mix.inc"
+	.include "data/scripts/nuzlocke.inc"
 	.include "data/scripts/pc.inc"
 
 @ scripts/notices.inc? signs.inc? See comment about text/notices.inc

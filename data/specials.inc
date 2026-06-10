@@ -55,6 +55,10 @@ gSpecials::
 	def_special SpawnLinkPartnerObjectEvent
 	def_special SavePlayerParty
 	def_special LoadPlayerParty
+	def_special Nuzlocke_ApplyFrontierDeaths
+	def_special Nuzlocke_SaveMemorialAndReturnToTitle
+	def_special Nuzlocke_ShowGameOverTitle
+	def_special Nuzlocke_DoDeathAutoSave
 	def_special ChooseHalfPartyForBattle, waitstate=1
 	def_special Script_ShowLinkTrainerCard, waitstate=1
 	def_special ObjectEventInteractionGetBerryTreeData
@@ -77,6 +81,7 @@ gSpecials::
 	def_special IsTrainerReadyForRematch
 	def_special BattleSetup_StartRematchBattle, waitstate=1
 	def_special ShowPokemonStorageSystemPC, waitstate=1
+	def_special ShowGraveyardPC, waitstate=1
 	def_special HasEnoughMonsForDoubleBattle
 	def_special TurnOffTVScreen
 	def_special DoTVShow

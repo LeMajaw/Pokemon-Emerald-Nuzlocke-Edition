@@ -77,32 +77,15 @@ Route117_PokemonDayCare_EventScript_DaycareWoman::
 	goto_if_eq VAR_RESULT, DAYCARE_EGG_WAITING, Route117_PokemonDayCare_EventScript_EggWaiting
 	goto_if_eq VAR_RESULT, DAYCARE_ONE_MON, Route117_PokemonDayCare_EventScript_OneMonInDaycare
 	goto_if_eq VAR_RESULT, DAYCARE_TWO_MONS, Route117_PokemonDayCare_EventScript_TwoMonsInDaycare
-	msgbox Route117_PokemonDayCare_Text_WouldYouLikeUsToRaiseAMon, MSGBOX_YESNO
-	goto_if_eq VAR_RESULT, YES, Route117_PokemonDayCare_EventScript_GiveMonToRaise
-	msgbox Route117_PokemonDayCare_Text_FineThenComeAgain, MSGBOX_DEFAULT
+	msgbox Route117_PokemonDayCare_Text_HardModeNoDaycare, MSGBOX_DEFAULT
 	release
 	end
 
+@ Nuzlocke (Rule 6): Day Care is disabled. Every deposit path refuses with the
+@ hard-mode message. Retrieval of any already-deposited Pokemon (e.g. from a
+@ pre-hack save) is left intact so living Pokemon are never stranded.
 Route117_PokemonDayCare_EventScript_GiveMonToRaise::
-	specialvar VAR_RESULT, CountPartyNonEggMons
-	goto_if_eq VAR_RESULT, 1, Route117_PokemonDayCare_EventScript_OnlyOneMon
-	specialvar VAR_RESULT, CountPartyAliveNonEggMons
-	goto_if_eq VAR_RESULT, 2, Route117_PokemonDayCare_EventScript_OnlyTwoAliveMons
-	msgbox Route117_PokemonDayCare_Text_WhichMonShouldWeRaise, MSGBOX_DEFAULT
-	fadescreen FADE_TO_BLACK
-	special ChooseSendDaycareMon
-	goto_if_eq VAR_0x8004, PARTY_NOTHING_CHOSEN, Route117_PokemonDayCare_EventScript_ComeAgain
-	specialvar VAR_RESULT, CountPartyAliveNonEggMons_IgnoreVar0x8004Slot
-	goto_if_eq VAR_RESULT, 0, Route117_PokemonDayCare_EventScript_OnlyOneAliveMon
-	specialvar VAR_0x8005, GetSelectedMonNicknameAndSpecies
-	waitse
-	playmoncry VAR_0x8005, CRY_MODE_NORMAL
-	msgbox Route117_PokemonDayCare_Text_WellRaiseYourMon, MSGBOX_DEFAULT
-	waitmoncry
-	special StoreSelectedPokemonInDaycare
-	incrementgamestat GAME_STAT_USED_DAYCARE
-	specialvar VAR_RESULT, GetDaycareState
-	goto_if_eq VAR_RESULT, DAYCARE_ONE_MON, Route117_PokemonDayCare_EventScript_CanRaiseOneMore
+	msgbox Route117_PokemonDayCare_Text_HardModeNoDaycare, MSGBOX_DEFAULT
 	release
 	end
 
@@ -325,6 +308,12 @@ Route117_PokemonDayCare_Text_WouldYouLikeUsToRaiseAMon:
 	.string "I'm the DAY-CARE LADY.\p"
 	.string "We can raise POKéMON for you.\p"
 	.string "Would you like us to raise one?$"
+
+Route117_PokemonDayCare_Text_HardModeNoDaycare:
+	.string "Sorry, sweetheart, but you chose to\n"
+	.string "play the game on hard mode.\p"
+	.string "That means no special training for\n"
+	.string "either you or your POKéMON.$"
 
 Route117_PokemonDayCare_Text_WhichMonShouldWeRaise:
 	.string "Which POKéMON should we raise for\n"

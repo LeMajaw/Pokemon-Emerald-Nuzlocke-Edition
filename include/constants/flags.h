@@ -1222,6 +1222,9 @@
 #define FLAG_ITEM_SAFARI_ZONE_NORTH_EAST_NUGGET                     0x491
 #define FLAG_ITEM_SAFARI_ZONE_SOUTH_EAST_BIG_PEARL                  0x492
 
+// Nuzlocke (Rule 16): flags 0x493-0x4EF are reserved for the catch-area
+// system (FLAG_NUZLOCKE_CATCH_AREA_BASE + index, see src/nuzlocke.c).
+// 0x493-0x4D2 are in use; 0x4D3-0x4EF are spares. Do not reuse any of them.
 #define FLAG_UNUSED_0x493                                           0x493 // Unused Flag
 #define FLAG_UNUSED_0x494                                           0x494 // Unused Flag
 #define FLAG_UNUSED_0x495                                           0x495 // Unused Flag

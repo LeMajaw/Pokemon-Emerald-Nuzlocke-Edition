@@ -18,6 +18,7 @@
 #include "link.h"
 #include "match_call.h"
 #include "metatile_behavior.h"
+#include "nuzlocke.h"
 #include "overworld.h"
 #include "pokemon.h"
 #include "safari_zone.h"
@@ -143,6 +144,11 @@ int ProcessPlayerFieldInput(struct FieldInput *input)
     playerDirection = GetPlayerFacingDirection();
     GetPlayerPosition(&position);
     metatileBehavior = MapGridGetMetatileBehaviorAt(position.x, position.y);
+
+    // Nuzlocke anti-reset: persist any battle deaths before anything else
+    // (even an approaching trainer) can start a new battle.
+    if (Nuzlocke_TryQueueDeathAutoSave() == TRUE)
+        return TRUE;
 
     if (CheckForTrainersWantingBattle() == TRUE)
         return TRUE;
