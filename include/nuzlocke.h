@@ -24,8 +24,13 @@ void Nuzlocke_RecordFrontierFaints(void);
 void Nuzlocke_ApplyFrontierDeaths(void);
 
 // Run-loss / memorial save (Rule 5).
-// TRUE if any Pokemon remains in the party or living boxes (1..12).
+// TRUE if any living, non-egg Pokemon remains in the party or living boxes
+// (1..12). Eggs and Graveyard Pokemon never count.
 bool32 Nuzlocke_HasLivingPokemon(void);
+// Whiteout auto-recovery (Rule 5 preferred behavior): if the party has no
+// usable (non-egg) Pokemon, withdraws the first living non-egg Pokemon from
+// boxes 1..12 (box order, then slot order) into the party.
+void Nuzlocke_TryWhiteOutPartyRecovery(void);
 // Game Over special: write the memorial save and return to the title screen.
 void Nuzlocke_SaveMemorialAndReturnToTitle(void);
 // Game Over title special: draws a centred "GAME OVER" window above the msgbox.

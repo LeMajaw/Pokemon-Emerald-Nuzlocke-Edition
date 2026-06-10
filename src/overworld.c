@@ -360,6 +360,12 @@ void DoWhiteOut(void)
 {
     RunScriptImmediately(EventScript_WhiteOut);
     SetMoney(&gSaveBlock1Ptr->money, GetMoney(&gSaveBlock1Ptr->money) / 2);
+    // Nuzlocke (Rule 5, preferred behavior): if the wipe left no usable
+    // (non-egg) Pokemon in the party, withdraw the first living non-egg
+    // Pokemon from boxes 1-12 before the heal, so play never resumes with
+    // zero usable Pokemon. If nothing usable exists anywhere, the party is
+    // left empty and CB2_WhiteOut's run-loss check shows the Game Over.
+    Nuzlocke_TryWhiteOutPartyRecovery();
     HealPlayerParty();
     Overworld_ResetStateAfterWhiteOut();
     SetWarpDestinationToLastHealLocation();
@@ -1561,8 +1567,10 @@ void CB2_WhiteOut(void)
         ResetInitialPlayerAvatarState();
         ScriptContext_Init();
         UnlockPlayerFieldControls();
-        // Nuzlocke (Rule 5): if the whiteout leaves no living Pokemon anywhere,
-        // the run is lost - show Game Over and return to the title instead of
+        // Nuzlocke (Rule 5): DoWhiteOut above already attempted the preferred
+        // recovery (withdrawing a living boxed Pokemon into the empty party).
+        // If no living, non-egg Pokemon exists anywhere - eggs never count -
+        // the run is lost: show Game Over and return to the title instead of
         // resuming normal play.
         if (Nuzlocke_HasLivingPokemon())
             gFieldCallback = FieldCB_WarpExitFadeFromBlack;
@@ -1754,8 +1762,9 @@ void CB2_ContinueSavedGame(void)
     else
     {
         TryPutTodaysRivalTrainerOnAir();
-        // Nuzlocke (Rule 5): a memorial save (no living Pokemon) re-triggers the
-        // Game Over on load, so normal play cannot resume from a lost run.
+        // Nuzlocke (Rule 5): a memorial save (no living, non-egg Pokemon
+        // anywhere - eggs never count) re-triggers the Game Over on load, so
+        // normal play cannot resume from a lost run.
         if (Nuzlocke_HasLivingPokemon())
             gFieldCallback = FieldCB_FadeTryShowMapPopup;
         else

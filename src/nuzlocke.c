@@ -512,29 +512,107 @@ void Nuzlocke_OnBattleEnd(void)
         Nuzlocke_ProcessPartyDeaths();
 }
 
-// Run-loss detection (Rule 5). The run is lost only when no Pokemon at all
-// remain in the party or in the living boxes (1..12). Graveyard boxes (13/14)
-// never count. Eggs count as "not yet lost" since they can still hatch.
+// Run-loss detection (Rule 5). The run is lost when no living, NON-EGG
+// Pokemon remains in the party or in the living boxes (1..12), exactly as the
+// specification defines it. Graveyard boxes (13/14) never count, and eggs
+// never count: a player left with only eggs cannot battle, so the run is over
+// (the eggs rest with the memorial save).
 bool32 Nuzlocke_HasLivingPokemon(void)
 {
     u32 i, box, pos;
 
     for (i = 0; i < PARTY_SIZE; i++)
     {
-        if (GetMonData(&gPlayerParty[i], MON_DATA_SPECIES, NULL) != SPECIES_NONE)
-            return TRUE;
+        struct Pokemon *mon = &gPlayerParty[i];
+
+        if (GetMonData(mon, MON_DATA_SPECIES, NULL) == SPECIES_NONE)
+            continue;
+        if (GetMonData(mon, MON_DATA_IS_EGG, NULL))
+            continue;
+        return TRUE;
     }
 
     for (box = 0; box < Nuzlocke_GetLivingBoxCount(); box++)
     {
         for (pos = 0; pos < IN_BOX_COUNT; pos++)
         {
-            if (GetBoxMonData(GetBoxedMonPtr(box, pos), MON_DATA_SPECIES, NULL) != SPECIES_NONE)
-                return TRUE;
+            struct BoxPokemon *boxMon = GetBoxedMonPtr(box, pos);
+
+            if (GetBoxMonData(boxMon, MON_DATA_SPECIES, NULL) == SPECIES_NONE)
+                continue;
+            if (GetBoxMonData(boxMon, MON_DATA_IS_EGG, NULL))
+                continue;
+            return TRUE;
         }
     }
 
     return FALSE;
+}
+
+// Rule 5 (preferred behavior): withdraws the first living, non-egg Pokemon
+// found in the living boxes - scanning box 1 slot 1 through box 12 slot 30 -
+// into the first free party slot. Graveyard boxes are never scanned and eggs
+// are never withdrawn. Returns TRUE if a Pokemon was recovered.
+static bool32 TryWithdrawFirstLivingBoxMon(void)
+{
+    u32 box, pos, i;
+
+    for (box = 0; box < GRAVEYARD_BOX_1; box++)
+    {
+        for (pos = 0; pos < IN_BOX_COUNT; pos++)
+        {
+            struct BoxPokemon *boxMon = GetBoxedMonPtr(box, pos);
+
+            if (GetBoxMonData(boxMon, MON_DATA_SPECIES, NULL) == SPECIES_NONE)
+                continue;
+            if (GetBoxMonData(boxMon, MON_DATA_IS_EGG, NULL))
+                continue;
+
+            for (i = 0; i < PARTY_SIZE; i++)
+            {
+                if (GetMonData(&gPlayerParty[i], MON_DATA_SPECIES, NULL) == SPECIES_NONE)
+                    break;
+            }
+            if (i == PARTY_SIZE)
+                return FALSE; // No free slot (cannot happen after a wipe).
+
+            // A Pokemon fresh from a box has full HP and no status, and the
+            // whiteout's HealPlayerParty runs right after this anyway.
+            BoxMonToMon(boxMon, &gPlayerParty[i]);
+            ZeroBoxMonAt(box, pos);
+            CompactPartySlots();
+            CalculatePlayerPartyCount();
+            return TRUE;
+        }
+    }
+    return FALSE;
+}
+
+// Rule 5 (preferred behavior): called during the whiteout flow, before the
+// party heal. If the wipe left the party with no usable Pokemon (empty or
+// eggs only - battle deaths have already moved the fallen to the Graveyard),
+// automatically recover one living boxed Pokemon so normal gameplay never
+// resumes with zero usable Pokemon. If the living boxes hold nothing usable
+// either, the party is left as-is and the caller's run-loss check
+// (Nuzlocke_HasLivingPokemon) triggers the Game Over instead.
+void Nuzlocke_TryWhiteOutPartyRecovery(void)
+{
+    u32 i;
+
+    for (i = 0; i < PARTY_SIZE; i++)
+    {
+        struct Pokemon *mon = &gPlayerParty[i];
+
+        if (GetMonData(mon, MON_DATA_SPECIES, NULL) == SPECIES_NONE)
+            continue;
+        if (GetMonData(mon, MON_DATA_IS_EGG, NULL))
+            continue;
+        // A non-egg party member survived (e.g. a field-poison whiteout,
+        // where fainting is not a battle death); the normal heal restores it.
+        return;
+    }
+
+    TryWithdrawFirstLivingBoxMon();
 }
 
 // Game Over special (Rule 5). Writes the current state as the "memorial save"
