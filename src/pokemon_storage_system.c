@@ -579,6 +579,10 @@ EWRAM_DATA static bool8 sAutoActionOn = 0;
 // Nuzlocke (Rule 3): runtime-only flag (never saved). TRUE while the player is
 // viewing the Graveyard's PC; FALSE for the normal "Someone's PC".
 EWRAM_DATA static bool8 sStorageGraveyardMode = FALSE;
+// Nuzlocke (Rule 3): the living box the player last had open. The Graveyard's
+// PC borrows the save's current-box slot for its session; this is what gets
+// put back when the view closes.
+EWRAM_DATA static u8 sGraveyardReturnBox = 0;
 
 // Lowest / highest box index the player may navigate to in the current view.
 // Someone's PC is limited to the living boxes (0..11); the Graveyard's PC is
@@ -1681,6 +1685,10 @@ void ShowPokemonStorageSystemPC(void)
 {
     u8 taskId;
     sStorageGraveyardMode = FALSE; // Someone's PC: the normal living-box view.
+    // Heal a saved current box left inside the Graveyard range (e.g. by a
+    // power-off while the Graveyard's PC was open).
+    if (StorageGetCurrentBox() >= Nuzlocke_GetLivingBoxCount())
+        SetCurrentBox(0);
     taskId = CreateTask(Task_PCMainMenu, 80);
     gTasks[taskId].tState = 0;
     gTasks[taskId].tSelectedOption = 0;
@@ -1695,6 +1703,13 @@ void ShowGraveyardPC(void)
 {
     u8 taskId;
     sStorageGraveyardMode = TRUE;
+    // Borrow the save's current-box slot for the Graveyard session. Remember
+    // the player's living box so it can be restored when the view closes
+    // (clamped in case an interrupted session already left a Graveyard box
+    // in the slot).
+    sGraveyardReturnBox = StorageGetCurrentBox();
+    if (sGraveyardReturnBox >= Nuzlocke_GetLivingBoxCount())
+        sGraveyardReturnBox = 0;
     SetCurrentBox(Nuzlocke_GetFirstGraveyardBox());
     taskId = CreateTask(Task_PCMainMenu, 80);
     gTasks[taskId].tState = STATE_GRAVEYARD_ENTER;
@@ -1706,6 +1721,19 @@ static void FieldTask_ReturnToPcMenu(void)
 {
     u8 taskId;
     MainCallback vblankCb = gMain.vblankCallback;
+
+    // Nuzlocke (Rule 3): closing the Graveyard's PC skips the storage option
+    // menu and resumes the script at the "Which PC should be accessed?" menu
+    // (the script is paused on ShowGraveyardPC's waitstate). The living box
+    // is given back the save's current-box slot first.
+    if (sStorageGraveyardMode)
+    {
+        sStorageGraveyardMode = FALSE;
+        SetCurrentBox(sGraveyardReturnBox);
+        ScriptContext_Enable();
+        FadeInFromBlack();
+        return;
+    }
 
     SetVBlankCallback(NULL);
     taskId = CreateTask(Task_PCMainMenu, 80);
