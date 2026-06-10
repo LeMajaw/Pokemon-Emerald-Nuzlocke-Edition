@@ -1,6 +1,7 @@
 #include "global.h"
 #include "battle.h"
 #include "event_data.h"
+#include "fieldmap.h"
 #include "item.h"
 #include "main.h"
 #include "menu.h"
@@ -493,6 +494,9 @@ void Nuzlocke_ApplyFrontierDeaths(void)
         // script, before the facility's own SAVE_LINK save can write a party
         // without them. SAVE_LINK skips the PC sectors, so a reset in that
         // window would erase the dead from both party and Graveyard.
+        // SaveMapView keeps the continue-screen map intact (see
+        // Nuzlocke_DoDeathAutoSave).
+        SaveMapView();
         TrySavingData(SAVE_NORMAL);
     }
 }
@@ -547,6 +551,11 @@ bool32 Nuzlocke_TryQueueDeathAutoSave(void)
 // "Saving..." message is on screen. SAVE_LINK would skip the PC.
 void Nuzlocke_DoDeathAutoSave(void)
 {
+    // Every field save must refresh the saved map-view snapshot first
+    // (start menu, Pike and Pyramid all do); on continue, LoadSavedMapView
+    // pastes it back over the map around the player, so a stale snapshot
+    // corrupts the loaded map's tiles.
+    SaveMapView();
     TrySavingData(SAVE_NORMAL);
 }
 
@@ -664,6 +673,8 @@ void Nuzlocke_SaveMemorialAndReturnToTitle(void)
     // started from the title screen without a console reset would otherwise
     // inherit it and auto-save over the old file at the first idle frame.
     sPendingDeathAutoSave = FALSE;
+    // Keep the memorial's reloaded map intact (see Nuzlocke_DoDeathAutoSave).
+    SaveMapView();
     TrySavingData(SAVE_NORMAL);
     SetMainCallback2(CB2_InitTitleScreen);
 }
