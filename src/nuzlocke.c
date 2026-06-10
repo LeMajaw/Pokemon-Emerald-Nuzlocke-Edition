@@ -247,6 +247,56 @@ static bool32 IsConsumingWildBattle(u32 battleTypeFlags)
     return TRUE;
 }
 
+// Rule 16: legendary Pokemon are completely banned from capture. The species
+// list is a backstop: every vanilla legendary encounter already sets
+// BATTLE_TYPE_LEGENDARY (statics, Regis, Kyogre/Groudon, Southern Island
+// Latis) or BATTLE_TYPE_ROAMER, but a species match also blocks any future
+// encounter path that forgets to set a flag.
+static const u16 sNuzlockeBannedCaptureSpecies[] =
+{
+    SPECIES_ARTICUNO,
+    SPECIES_ZAPDOS,
+    SPECIES_MOLTRES,
+    SPECIES_MEWTWO,
+    SPECIES_MEW,
+    SPECIES_RAIKOU,
+    SPECIES_ENTEI,
+    SPECIES_SUICUNE,
+    SPECIES_LUGIA,
+    SPECIES_HO_OH,
+    SPECIES_CELEBI,
+    SPECIES_REGIROCK,
+    SPECIES_REGICE,
+    SPECIES_REGISTEEL,
+    SPECIES_LATIAS,
+    SPECIES_LATIOS,
+    SPECIES_KYOGRE,
+    SPECIES_GROUDON,
+    SPECIES_RAYQUAZA,
+    SPECIES_JIRACHI,
+    SPECIES_DEOXYS,
+};
+
+// TRUE if the Pokemon a thrown ball would target is a banned legendary.
+// Wild battles are always single in vanilla Emerald, so the wild Pokemon is
+// gEnemyParty[0].
+bool32 Nuzlocke_IsBallTargetLegendary(void)
+{
+    u32 i;
+    u16 species;
+
+    if (gBattleTypeFlags & (BATTLE_TYPE_LEGENDARY | BATTLE_TYPE_ROAMER))
+        return TRUE;
+
+    species = GetMonData(&gEnemyParty[0], MON_DATA_SPECIES, NULL);
+    for (i = 0; i < ARRAY_COUNT(sNuzlockeBannedCaptureSpecies); i++)
+    {
+        if (sNuzlockeBannedCaptureSpecies[i] == species)
+            return TRUE;
+    }
+    return FALSE;
+}
+
 // Rule 4: when a Pokemon dies, try to move its held item into the Bag so the
 // player can keep using it. If the Bag has no room, the item stays attached to
 // the dead Pokemon and travels to the Graveyard, where it can be retrieved

@@ -25,6 +25,7 @@
 #include "menu.h"
 #include "menu_helpers.h"
 #include "metatile_behavior.h"
+#include "nuzlocke.h"
 #include "overworld.h"
 #include "palette.h"
 #include "party_menu.h"
@@ -948,6 +949,31 @@ void ItemUseOutOfBattle_EvolutionStone(u8 taskId)
 
 void ItemUseInBattle_PokeBall(u8 taskId)
 {
+    const u8 *blockMsg = NULL;
+
+    // Nuzlocke (Rule 16): in wild battles, balls cannot be thrown at banned
+    // legendary Pokemon, nor in a catch area whose first encounter has
+    // already been used. The ball is not consumed and the battle continues
+    // (same flow as the BOX-full message below). Trainer battles keep their
+    // vanilla ball behavior, and Wally's scripted catch uses its own
+    // controller (never this bag path) but is exempted here as well.
+    if (!(gBattleTypeFlags & (BATTLE_TYPE_TRAINER | BATTLE_TYPE_WALLY_TUTORIAL)))
+    {
+        if (Nuzlocke_IsBallTargetLegendary())
+            blockMsg = gText_NuzlockeLegendaryBlocked;
+        else if (Nuzlocke_IsCatchRuleActive() && Nuzlocke_IsCurrentCatchAreaConsumed())
+            blockMsg = gText_NuzlockeEncounterUsed;
+    }
+
+    if (blockMsg != NULL)
+    {
+        if (CurrentBattlePyramidLocation() == PYRAMID_LOCATION_NONE)
+            DisplayItemMessage(taskId, FONT_NORMAL, blockMsg, CloseItemMessage);
+        else
+            DisplayItemMessageInBattlePyramid(taskId, blockMsg, Task_CloseBattlePyramidBagMessage);
+        return;
+    }
+
     if (IsPlayerPartyAndPokemonStorageFull() == FALSE) // have room for mon?
     {
         RemoveBagItem(gSpecialVar_ItemId, 1);

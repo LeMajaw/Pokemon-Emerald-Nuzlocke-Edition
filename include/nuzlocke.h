@@ -47,6 +47,8 @@ void Nuzlocke_InitGraveyardIfNeeded(void);
 bool32 Nuzlocke_IsCatchRuleActive(void);
 // TRUE if the current map's catch area has already used its first encounter.
 bool32 Nuzlocke_IsCurrentCatchAreaConsumed(void);
+// TRUE if a thrown ball would target a banned legendary (Rule 16).
+bool32 Nuzlocke_IsBallTargetLegendary(void);
 
 // Graveyard box queries (used by the PC storage system, Rule 3).
 // The Graveyard occupies the last two PC boxes; living storage is the rest.
