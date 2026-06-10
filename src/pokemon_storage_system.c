@@ -7577,6 +7577,12 @@ static u8 HandleInput_OnBox(void)
 
         if (JOY_NEW(A_BUTTON))
         {
+            // Nuzlocke (Rule 3): the Graveyard's box header is display-only.
+            // JUMP/WALLPAPER/NAME are living-box options, so the box options
+            // menu never opens here; left/right scrolling still switches
+            // between Graveyard 1 and Graveyard 2.
+            if (sStorageGraveyardMode)
+                return INPUT_NONE;
             AnimateBoxScrollArrows(FALSE);
             AddBoxOptionsMenu();
             return INPUT_BOX_OPTIONS;
