@@ -36,6 +36,13 @@ void Nuzlocke_SaveMemorialAndReturnToTitle(void);
 // Game Over title special: draws a centred "GAME OVER" window above the msgbox.
 void Nuzlocke_ShowGameOverTitle(void);
 
+// Anti-reset auto-save. Battle deaths set a runtime-only pending flag; the
+// first idle overworld frame consumes it by running the auto-save script
+// (full SAVE_NORMAL, so the Graveyard's PC sectors are written).
+bool32 Nuzlocke_TryQueueDeathAutoSave(void); // hook in ProcessPlayerFieldInput
+void Nuzlocke_DoDeathAutoSave(void);         // script special: TrySavingData
+extern const u8 EventScript_NuzlockeDeathAutoSave[];
+
 // Game Over field script (shown when a run is lost).
 extern const u8 EventScript_NuzlockeGameOver[];
 

@@ -7,6 +7,7 @@
 #include "pokemon.h"
 #include "pokemon_storage_system.h"
 #include "save.h"
+#include "script.h"
 #include "text.h"
 #include "title_screen.h"
 #include "window.h"
@@ -35,6 +36,13 @@
 // deaths must be remembered here and applied once the real party is back.
 static u32 sFrontierDeadPersonalities[6];
 static u8 sFrontierDeadCount;
+
+// Anti-reset auto-save (runtime only, never saved). Set when battle teardown
+// writes a death to the Graveyard; consumed at the first safe overworld frame
+// (no script, no menu, controls unlocked), which runs the auto-save script.
+// Frontier deaths do not use this flag - Nuzlocke_ApplyFrontierDeaths already
+// runs from a lobby script and saves synchronously there.
+static bool8 sPendingDeathAutoSave;
 
 // Nuzlocke core implementation. See docs/NuzlockeSpecification.md.
 //
@@ -366,6 +374,8 @@ void Nuzlocke_ProcessPartyDeaths(void)
     {
         CompactPartySlots();
         CalculatePlayerPartyCount();
+        // Anti-reset: persist the deaths at the first safe overworld frame.
+        sPendingDeathAutoSave = TRUE;
     }
 }
 
@@ -479,6 +489,11 @@ void Nuzlocke_ApplyFrontierDeaths(void)
     {
         CompactPartySlots();
         CalculatePlayerPartyCount();
+        // Anti-reset (Rule 11): persist the deaths right here, from the lobby
+        // script, before the facility's own SAVE_LINK save can write a party
+        // without them. SAVE_LINK skips the PC sectors, so a reset in that
+        // window would erase the dead from both party and Graveyard.
+        TrySavingData(SAVE_NORMAL);
     }
 }
 
@@ -510,6 +525,29 @@ void Nuzlocke_OnBattleEnd(void)
 
     if (Nuzlocke_BattleCountsAsDeath(gBattleTypeFlags))
         Nuzlocke_ProcessPartyDeaths();
+}
+
+// Anti-reset auto-save consume point. Called by ProcessPlayerFieldInput on
+// every frame the overworld is idle (no script running, no menu open, field
+// controls unlocked) - the same dispatcher vanilla uses for field poison and
+// egg hatching. Queues the auto-save script once after a battle whose deaths
+// reached the Graveyard; by then any whiteout recovery, respawn and trainer
+// defeat speech have already finished, so the save captures the final state.
+bool32 Nuzlocke_TryQueueDeathAutoSave(void)
+{
+    if (!sPendingDeathAutoSave)
+        return FALSE;
+    sPendingDeathAutoSave = FALSE;
+    ScriptContext_SetupScript(EventScript_NuzlockeDeathAutoSave);
+    return TRUE;
+}
+
+// Script special for EventScript_NuzlockeDeathAutoSave: writes a full save
+// (party and all PC sectors, so the Graveyard is included) while the script's
+// "Saving..." message is on screen. SAVE_LINK would skip the PC.
+void Nuzlocke_DoDeathAutoSave(void)
+{
+    TrySavingData(SAVE_NORMAL);
 }
 
 // Run-loss detection (Rule 5). The run is lost when no living, NON-EGG
@@ -622,6 +660,10 @@ void Nuzlocke_TryWhiteOutPartyRecovery(void)
 // resume from a lost run.
 void Nuzlocke_SaveMemorialAndReturnToTitle(void)
 {
+    // A pending death auto-save must not leak past the Game Over: a New Game
+    // started from the title screen without a console reset would otherwise
+    // inherit it and auto-save over the old file at the first idle frame.
+    sPendingDeathAutoSave = FALSE;
     TrySavingData(SAVE_NORMAL);
     SetMainCallback2(CB2_InitTitleScreen);
 }

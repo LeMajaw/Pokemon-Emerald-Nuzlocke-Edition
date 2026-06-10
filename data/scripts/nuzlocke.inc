@@ -15,3 +15,22 @@ gText_NuzlockeGameOver:
 	.string "an end…\p"
 	.string "Their memory lives on in the\n"
 	.string "GRAVEYARD.$"
+
+@ Nuzlocke anti-reset auto-save. Queued by Nuzlocke_TryQueueDeathAutoSave at
+@ the first idle overworld frame after a battle whose deaths reached the
+@ Graveyard. No button press needed: print, save, jingle, close.
+EventScript_NuzlockeDeathAutoSave::
+	lockall
+	message gText_NuzlockeDeathAutoSave
+	waitmessage
+	special Nuzlocke_DoDeathAutoSave
+	playse SE_SAVE
+	waitse
+	delay 30
+	closemessage
+	releaseall
+	end
+
+gText_NuzlockeDeathAutoSave:
+	.string "The fallen rest in the GRAVEYARD.\n"
+	.string "Saving… don't turn off the power.$"
