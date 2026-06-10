@@ -15,12 +15,19 @@
 #include "constants/characters.h"
 #include "constants/flags.h"
 #include "constants/items.h"
+#include "constants/region_map_sections.h"
 #include "constants/species.h"
 
 // One-time "Graveyard initialized" marker. Reuses an existing unused flag, so
 // no new save data is introduced and the save format is unchanged. Once set,
 // boxes 13/14 are exclusively the Graveyard.
 #define FLAG_NUZLOCKE_GRAVEYARD_READY FLAG_UNUSED_0x020
+
+// Rule 16: per-catch-area "encounter consumed" bits. Reuses the contiguous
+// unused-flag run 0x493..0x4EF (93 flags; 64 in use, the rest reserved as
+// spares), so no new save data is introduced. The flag for a catch area is
+// FLAG_NUZLOCKE_CATCH_AREA_BASE + its index in sNuzlockeCatchAreaMapSecs.
+#define FLAG_NUZLOCKE_CATCH_AREA_BASE FLAG_UNUSED_0x493
 
 // Runtime-only record (never saved) of the Pokemon that fainted during the
 // current Battle Frontier challenge, identified by personality value. The
@@ -86,6 +93,157 @@ bool32 Nuzlocke_BattleCountsAsDeath(u32 battleTypeFlags)
         return FALSE;
 
     // Trainer and wild battles count (Rule 15).
+    return TRUE;
+}
+
+// Rule 16: every map section that has a wild encounter table is one catch
+// area. Multi-floor dungeons share one entry (one section), the whole Safari
+// Zone is a single area, and Underwater 124/126 are separate from their
+// surface routes. A catch area's flag is FLAG_NUZLOCKE_CATCH_AREA_BASE + its
+// index here, and those flags live in save data - so this table is
+// APPEND-ONLY: never remove, reorder or insert entries, or existing saves
+// would see the wrong areas as consumed.
+static const u16 sNuzlockeCatchAreaMapSecs[] =
+{
+    // Towns and cities with water/fishing encounters.
+    MAPSEC_DEWFORD_TOWN,
+    MAPSEC_PACIFIDLOG_TOWN,
+    MAPSEC_PETALBURG_CITY,
+    MAPSEC_SLATEPORT_CITY,
+    MAPSEC_LILYCOVE_CITY,
+    MAPSEC_MOSSDEEP_CITY,
+    MAPSEC_SOOTOPOLIS_CITY,
+    MAPSEC_EVER_GRANDE_CITY,
+    // Routes.
+    MAPSEC_ROUTE_101,
+    MAPSEC_ROUTE_102,
+    MAPSEC_ROUTE_103,
+    MAPSEC_ROUTE_104,
+    MAPSEC_ROUTE_105,
+    MAPSEC_ROUTE_106,
+    MAPSEC_ROUTE_107,
+    MAPSEC_ROUTE_108,
+    MAPSEC_ROUTE_109,
+    MAPSEC_ROUTE_110,
+    MAPSEC_ROUTE_111,
+    MAPSEC_ROUTE_112,
+    MAPSEC_ROUTE_113,
+    MAPSEC_ROUTE_114,
+    MAPSEC_ROUTE_115,
+    MAPSEC_ROUTE_116,
+    MAPSEC_ROUTE_117,
+    MAPSEC_ROUTE_118,
+    MAPSEC_ROUTE_119,
+    MAPSEC_ROUTE_120,
+    MAPSEC_ROUTE_121,
+    MAPSEC_ROUTE_122,
+    MAPSEC_ROUTE_123,
+    MAPSEC_ROUTE_124,
+    MAPSEC_ROUTE_125,
+    MAPSEC_ROUTE_126,
+    MAPSEC_ROUTE_127,
+    MAPSEC_ROUTE_128,
+    MAPSEC_ROUTE_129,
+    MAPSEC_ROUTE_130,
+    MAPSEC_ROUTE_131,
+    MAPSEC_ROUTE_132,
+    MAPSEC_ROUTE_133,
+    MAPSEC_ROUTE_134,
+    // Underwater areas (separate from their surface routes).
+    MAPSEC_UNDERWATER_124,
+    MAPSEC_UNDERWATER_126,
+    // Caves, dungeons and special areas.
+    MAPSEC_GRANITE_CAVE,
+    MAPSEC_SAFARI_ZONE,
+    MAPSEC_PETALBURG_WOODS,
+    MAPSEC_RUSTURF_TUNNEL,
+    MAPSEC_ABANDONED_SHIP,
+    MAPSEC_NEW_MAUVILLE,
+    MAPSEC_METEOR_FALLS,
+    MAPSEC_MT_PYRE,
+    MAPSEC_SHOAL_CAVE,
+    MAPSEC_SEAFLOOR_CAVERN,
+    MAPSEC_VICTORY_ROAD,
+    MAPSEC_CAVE_OF_ORIGIN,
+    MAPSEC_FIERY_PATH,
+    MAPSEC_JAGGED_PASS,
+    MAPSEC_SKY_PILLAR,
+    MAPSEC_MAGMA_HIDEOUT,
+    MAPSEC_MIRAGE_TOWER,
+    MAPSEC_ARTISAN_CAVE,
+    MAPSEC_DESERT_UNDERPASS,
+    MAPSEC_ALTERING_CAVE,
+};
+
+// Returns the catch-area index for a map section, or -1 if the section has no
+// wild encounters (towns without water, indoor maps, the Battle Frontier...).
+// Maps outside the table are never consumed and never block Poke Balls, which
+// also keeps scripted statics on such maps (e.g. Sudowoodo) catchable - a
+// documented exception approved in the Rule 16 design review.
+static s32 GetCatchAreaIndex(u8 mapsec)
+{
+    u32 i;
+
+    for (i = 0; i < ARRAY_COUNT(sNuzlockeCatchAreaMapSecs); i++)
+    {
+        if (sNuzlockeCatchAreaMapSecs[i] == mapsec)
+            return i;
+    }
+    return -1;
+}
+
+// Rule 16: the first-encounter rule is active once the rival has handed over
+// the Poke Balls in Birch's Lab. FLAG_ADVENTURE_STARTED is set exactly there
+// and nowhere else, so no new flag is needed. Encounters before that moment
+// never consume an area.
+bool32 Nuzlocke_IsCatchRuleActive(void)
+{
+    return FlagGet(FLAG_ADVENTURE_STARTED);
+}
+
+// TRUE if the player's current map belongs to a catch area whose first valid
+// encounter has already been used up.
+bool32 Nuzlocke_IsCurrentCatchAreaConsumed(void)
+{
+    s32 index = GetCatchAreaIndex(gMapHeader.regionMapSectionId);
+
+    if (index < 0)
+        return FALSE;
+    return FlagGet(FLAG_NUZLOCKE_CATCH_AREA_BASE + index);
+}
+
+// Marks the current map's catch area as consumed. No-op on maps that are not
+// catch areas.
+static void ConsumeCurrentCatchArea(void)
+{
+    s32 index = GetCatchAreaIndex(gMapHeader.regionMapSectionId);
+
+    if (index >= 0)
+        FlagSet(FLAG_NUZLOCKE_CATCH_AREA_BASE + index);
+}
+
+// Rule 16: TRUE for battles whose end consumes the current catch area - i.e.
+// real wild encounters, however they end (caught, fainted, fled, ran). Safari
+// battles consume. Trainer battles never do. Excluded wild-like battles:
+//  - Wally tutorial: a scripted catch; must not consume Route 102.
+//  - First battle: Birch's tutorial, before Poke Balls exist.
+//  - Legendary/roamer: legendaries are ignored by encounter tracking. Every
+//    vanilla legendary path sets BATTLE_TYPE_LEGENDARY (statics, Regis,
+//    Kyogre/Groudon, Southern Island Latis) or BATTLE_TYPE_ROAMER.
+//  - Link/recorded: not real encounters.
+// Frontier wild battles (Pike/Pyramid) never reach this check: OnBattleEnd
+// returns early for all own-mon frontier facilities.
+static bool32 IsConsumingWildBattle(u32 battleTypeFlags)
+{
+    if (battleTypeFlags & BATTLE_TYPE_TRAINER)
+        return FALSE;
+    if (battleTypeFlags & (BATTLE_TYPE_LINK
+                         | BATTLE_TYPE_FIRST_BATTLE
+                         | BATTLE_TYPE_WALLY_TUTORIAL
+                         | BATTLE_TYPE_LEGENDARY
+                         | BATTLE_TYPE_ROAMER
+                         | BATTLE_TYPE_RECORDED))
+        return FALSE;
     return TRUE;
 }
 
@@ -294,6 +452,11 @@ void Nuzlocke_OnBattleEnd(void)
         Nuzlocke_RecordFrontierFaints();
         return;
     }
+
+    // Rule 16: a finished wild encounter uses up its catch area, regardless
+    // of how the battle ended. Only once the challenge has officially begun.
+    if (Nuzlocke_IsCatchRuleActive() && IsConsumingWildBattle(gBattleTypeFlags))
+        ConsumeCurrentCatchArea();
 
     if (Nuzlocke_BattleCountsAsDeath(gBattleTypeFlags))
         Nuzlocke_ProcessPartyDeaths();

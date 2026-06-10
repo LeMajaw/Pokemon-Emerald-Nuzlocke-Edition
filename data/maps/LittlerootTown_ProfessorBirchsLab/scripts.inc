@@ -514,6 +514,12 @@ LittlerootTown_ProfessorBirchsLab_EventScript_GivePokedex::
 	checkplayergender
 	call_if_eq VAR_RESULT, MALE, LittlerootTown_ProfessorBirchsLab_EventScript_MayGivePokeBalls
 	call_if_eq VAR_RESULT, FEMALE, LittlerootTown_ProfessorBirchsLab_EventScript_BrendanGivePokeBalls
+	@ Nuzlocke (Rule 16): the challenge officially begins the moment the rival
+	@ has handed over the Poke Balls. FLAG_ADVENTURE_STARTED (set below) is the
+	@ activation gate for first-encounter tracking.
+	playfanfare MUS_OBTAIN_SYMBOL
+	msgbox LittlerootTown_ProfessorBirchsLab_Text_NuzlockeChallengeBegins, MSGBOX_DEFAULT
+	waitfanfare
 	setvar VAR_BIRCH_LAB_STATE, 5
 	setflag FLAG_ADVENTURE_STARTED
 	setvar VAR_OLDALE_TOWN_STATE, 1
@@ -799,6 +805,13 @@ LittlerootTown_ProfessorBirchsLab_Text_HeyYourBagsFull:
 LittlerootTown_ProfessorBirchsLab_Text_BrendanWhereShouldIGoNext:
 	.string "BRENDAN: Where should I look for\n"
 	.string "POKéMON next…$"
+
+LittlerootTown_ProfessorBirchsLab_Text_NuzlockeChallengeBegins:
+	.string "The NUZLOCKE challenge has\n"
+	.string "officially begun!\p"
+	.string "Only your first encounter in each\n"
+	.string "area may be caught.\p"
+	.string "Make every battle count…$"
 
 LittlerootTown_ProfessorBirchsLab_Text_SeriousLookingMachine:
 	.string "It's a serious-looking machine.\n"

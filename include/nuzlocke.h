@@ -41,6 +41,13 @@ void FieldCB_NuzlockeGameOver(void);
 // the Graveyard boxes (13/14) of a pre-hack save into boxes 1..12 (Rule 3.2).
 void Nuzlocke_InitGraveyardIfNeeded(void);
 
+// First-encounter rule (Rule 16). Active once the rival has handed over the
+// Poke Balls (FLAG_ADVENTURE_STARTED). Each map section with wild encounters
+// is one catch area; a finished wild battle consumes it permanently.
+bool32 Nuzlocke_IsCatchRuleActive(void);
+// TRUE if the current map's catch area has already used its first encounter.
+bool32 Nuzlocke_IsCurrentCatchAreaConsumed(void);
+
 // Graveyard box queries (used by the PC storage system, Rule 3).
 // The Graveyard occupies the last two PC boxes; living storage is the rest.
 bool32 Nuzlocke_IsGraveyardBox(u8 boxId);  // TRUE for PC boxes 13 and 14
