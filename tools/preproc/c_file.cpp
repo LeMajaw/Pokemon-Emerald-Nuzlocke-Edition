@@ -383,10 +383,10 @@ int ExtractData(const std::unique_ptr<unsigned char[]>& buffer, int offset, int 
 
 void CFile::TryConvertIncbin()
 {
-    std::string idents[3] = { "INCBIN_U8", "INCBIN_U16", "INCBIN_U32" };
+    std::string idents[8] = { "INCBIN_S8", "INCBIN_U8", "INCBIN_S16", "INCBIN_U16", "INCBIN_S32", "INCBIN_U32", "DUMMY", "INCBIN_COMP"};
     int incbinType = -1;
 
-    for (int i = 0; i < 3; i++)
+    for (int i = 0; i < 8; i++)
     {
         if (CheckIdentifier(idents[i]))
         {
@@ -398,7 +398,10 @@ void CFile::TryConvertIncbin()
     if (incbinType == -1)
         return;
 
-    int size = 1 << incbinType;
+    int size = 1 << (incbinType / 2);
+    if (size > 4)
+        size = 4;
+    bool isSigned = ((incbinType % 2) == 0);
 
     long oldPos = m_pos;
     auto oldLocation = m_location;
@@ -421,7 +424,40 @@ void CFile::TryConvertIncbin()
     while (true)
     {
         SkipWhitespace();
-        auto path = ReadString();
+
+        if (m_buffer[m_pos] != '"')
+            RaiseError("expected double quote");
+
+        m_pos++;
+
+        int startPos = m_pos;
+
+        while (m_buffer[m_pos] != '"')
+        {
+            if (m_buffer[m_pos] == 0)
+            {
+                if (m_pos >= m_size)
+                    RaiseError("unexpected EOF in path string");
+                else
+                    RaiseError("unexpected null character in path string");
+            }
+
+            if (m_buffer[m_pos] == '\r' || m_buffer[m_pos] == '\n')
+                RaiseError("unexpected end of line character in path string");
+
+            if (m_buffer[m_pos] == '\\')
+                RaiseError("unexpected escape in path string");
+
+            m_pos++;
+        }
+
+        std::string path(&m_buffer[startPos], m_pos - startPos);
+
+        // INCBIN_COMP; include *compressed* version of file
+        if (incbinType == 7)
+            path = path.append(".lz");
+
+        m_pos++;
 
         int fileSize;
         std::unique_ptr<unsigned char[]> buffer = ReadWholeFile(path, fileSize);

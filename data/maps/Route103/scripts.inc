@@ -1,11 +1,39 @@
 Route103_MapScripts::
 	map_script MAP_SCRIPT_ON_TRANSITION, Route103_OnTransition
+	map_script MAP_SCRIPT_ON_RESUME, Route103_OnResume
 	map_script MAP_SCRIPT_ON_LOAD, Route103_OnLoad
 	.byte 0
 
 Route103_OnTransition:
+	special GetDayOrNight
+	goto_if_eq VAR_RESULT, 1, Route103_OnTransition_Night
+	goto_if_eq VAR_RESULT, 0, Route103_OnTransition_Day
+	end
+
+Route103_OnTransition_Night:
+	setvar VAR_DAYNIGHT, 1
 	call Common_EventScript_SetupRivalGfxId
 	call ProfBirch_EventScript_UpdateLocation
+	end
+
+Route103_OnTransition_Day:
+	setvar VAR_DAYNIGHT, 0
+	call Common_EventScript_SetupRivalGfxId
+	call ProfBirch_EventScript_UpdateLocation
+	end
+
+Route103_OnResume:
+	special GetDayOrNight
+	goto_if_eq VAR_RESULT, 1, Route103_OnResume_Night
+	goto_if_eq VAR_RESULT, 0, Route103_OnResume_Day
+	end
+
+Route103_OnResume_Night:
+	setvar VAR_DAYNIGHT, 1
+	end
+	
+Route103_OnResume_Day:
+	setvar VAR_DAYNIGHT, 0
 	end
 
 Route103_OnLoad:

@@ -89,6 +89,31 @@ Route117_PokemonDayCare_EventScript_GiveMonToRaise::
 	release
 	end
 
+@ Original Day Care deposit flow preserved in case we allow Day Care later.
+Route117_PokemonDayCare_EventScript_GiveMonToRaise_Unused::
+	specialvar VAR_RESULT, CountPartyNonEggMons
+	goto_if_eq VAR_RESULT, 1, Route117_PokemonDayCare_EventScript_OnlyOneMon
+	specialvar VAR_RESULT, CountPartyAliveNonEggMons
+	goto_if_eq VAR_RESULT, 2, Route117_PokemonDayCare_EventScript_OnlyTwoAliveMons
+	msgbox Route117_PokemonDayCare_Text_WhichMonShouldWeRaise, MSGBOX_DEFAULT
+	fadescreen FADE_TO_BLACK
+	special ChooseSendDaycareMon
+	waitstate
+	goto_if_eq VAR_0x8004, PARTY_NOTHING_CHOSEN, Route117_PokemonDayCare_EventScript_ComeAgain
+	specialvar VAR_RESULT, CountPartyAliveNonEggMons_IgnoreVar0x8004Slot
+	goto_if_eq VAR_RESULT, 0, Route117_PokemonDayCare_EventScript_OnlyOneAliveMon
+	specialvar VAR_0x8005, GetSelectedMonNicknameAndSpecies
+	waitse
+	playmoncry VAR_0x8005, CRY_MODE_NORMAL
+	msgbox Route117_PokemonDayCare_Text_WellRaiseYourMon, MSGBOX_DEFAULT
+	waitmoncry
+	special StoreSelectedPokemonInDaycare
+	incrementgamestat GAME_STAT_USED_DAYCARE
+	specialvar VAR_RESULT, GetDaycareState
+	goto_if_eq VAR_RESULT, DAYCARE_ONE_MON, Route117_PokemonDayCare_EventScript_CanRaiseOneMore
+	release
+	end
+
 Route117_PokemonDayCare_EventScript_ComeAgain::
 	msgbox Route117_PokemonDayCare_Text_ComeAgain, MSGBOX_DEFAULT
 	release
