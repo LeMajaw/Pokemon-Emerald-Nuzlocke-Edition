@@ -401,7 +401,6 @@ void CFile::TryConvertIncbin()
     int size = 1 << (incbinType / 2);
     if (size > 4)
         size = 4;
-    bool isSigned = ((incbinType % 2) == 0);
 
     long oldPos = m_pos;
     auto oldLocation = m_location;
