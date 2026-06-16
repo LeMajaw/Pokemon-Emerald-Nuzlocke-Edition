@@ -184,6 +184,28 @@ Impact: A clear, consistent end-of-run screen every time.
 
 Impact: Stable saves and backward compatibility, with the entire ruleset layered on top of the vanilla save structure.
 
+## Difficulty: Recommended Levels, EXP & Momentum
+
+A lightweight difficulty layer keeps your team near the intended power band so battles stay meaningful — without ever forbidding over-leveling. Full details live in `docs/DifficultySpecification.md`.
+
+#### Recommended Levels
+
+Every Gym and the League has a recommended level (the next boss's ace). Gym statues display it, so you always know the band. Pokémon at or below it behave normally; only Pokémon **above** it are affected by the rules below.
+
+Impact: You always know how strong you "should" be, and the game gently keeps you there instead of letting you steamroll.
+
+#### Modern Party-Wide EXP
+
+Every living party Pokémon earns EXP from your victories — the Pokémon that fought get the full share, the bench gets a passive share. (A held Exp Share is no longer needed.)
+
+Impact: Less grinding; benched Pokémon and Nuzlocke replacements train alongside your active team.
+
+#### Over-Cap EXP & Momentum
+
+A Pokémon **above** the recommended level earns reduced EXP (80% at +1 level over, down to 10% at +5 or more) and gets **no** passive bench EXP — it must actually fight to gain anything. **Momentum** lets it earn some of that back: winning meaningful battles (real trainers and bosses near your level — *not* weak wild Pokémon) builds Momentum, which lifts a deeply over-leveled Pokémon's rate back up toward — but never past — 50%. Momentum is spent when you reset your resources: a Pokémon Center heal wipes it, and HP/PP items (−50%) or status cures (−25%) reduce it; boxing or losing the Pokémon clears it.
+
+Impact: You can keep leveling an over-leveled favorite, but only by accepting risk and pushing through real battles — never by farming Route 101 or healing after every fight. The optimal play is to keep adventuring.
+
 ## Vanilla Differences
 
 A concise summary of everything that differs from pret/pokeemerald in the Nuzlocke layer:
@@ -207,12 +229,15 @@ A concise summary of everything that differs from pret/pokeemerald in the Nuzloc
 - Running Shoes work indoors (other running restrictions still apply; outdoor running unchanged).
 - Optional Dupes Clause (off by default, chosen once in Birch's Lab): when on, a species you already own alive doesn't count as an area's first encounter and can't be caught, and the area stays open.
 - The immediate-loss Game Over and the memorial-save Game Over use one shared display flow and render the same clean screen.
+- Recommended levels are shown on Gym statues; Pokémon over the band earn reduced EXP and must participate in battle to gain any.
+- Modern party-wide EXP: every living party Pokémon gains EXP from a victory (the Exp Share item is now redundant).
+- Momentum: over-leveled Pokémon regain EXP efficiency (up to 50%) by winning meaningful battles, and lose it by healing/boxing/fainting or using HP/PP/status items. Momentum is runtime-only and adds no save data.
 - No changes to Pokémon data, trainers, maps, encounters, or story.
 
 ## Technical Notes
 
 - **Base repository:** [pret/pokeemerald](https://github.com/pret/pokeemerald). This project is layered on top of the *Pokémon Emerald Revamped* base (which itself modernizes engine, audio, and graphics tooling over pret); the Nuzlocke ruleset documented here is this hack's contribution on top of that base.
-- **Design contract:** the authoritative, developer-facing implementation contract for the Nuzlocke systems lives in `docs/NuzlockeSpecification.md`. It carries its own document-revision number, which is independent of this hack's release version below. Contributors should read it before changing any Nuzlocke behavior.
+- **Design contract:** the authoritative, developer-facing implementation contract for the Nuzlocke systems lives in `docs/NuzlockeSpecification.md`. It carries its own document-revision number, which is independent of this hack's release version below. Contributors should read it before changing any Nuzlocke behavior. The **difficulty systems** (recommended levels, party-wide EXP, over-cap EXP, and Momentum) are documented separately in `docs/DifficultySpecification.md`.
 - **Build requirements:** Build from source with the standard pokeemerald toolchain (a modern `arm-none-eabi` GCC via devkitARM works; follow the pret pokeemerald INSTALL guide for your OS). No ROM files are included or distributed. Build with `make -j$(nproc)` (e.g. `make -j4`). Because the hack intentionally changes gameplay, `make compare` is **not** expected to match vanilla Emerald.
 - **Build fixes in this branch:** the Makefile includes `spritesheet_rules.mk`, and object-event graphics are sourced as pre-sliced `.4bpp` frames, to correctly build the Revamped base's overworld sprites. A `preproc` signedness fix is also included.
 - **Emulator recommendations:** Any accurate GBA emulator (e.g. mGBA). Save behavior — including the auto-save-after-death and memorial-save flow — assumes correct flash save emulation, so use an emulator/core with reliable GBA save support.
@@ -220,6 +245,8 @@ A concise summary of everything that differs from pret/pokeemerald in the Nuzloc
 ## Known Limitations
 
 - The Species Clause and Shiny Clause are not enforced. (The Dupes Clause *is* supported, as an optional setting — see the Optional Dupes Clause feature above.)
+- Momentum has no on-screen readout yet (infer it from EXP behavior); it is runtime-only and resets when you reload a save.
+- Lavaridge and Sootopolis Gyms have no certification statue, so their recommended levels (29 and 46) aren't shown in-game.
 - The Graveyard holds at most 60 Pokémon (two boxes of 30). If it is ever completely full, a newly fallen Pokémon is left in place rather than lost.
 - Eggs never count as living Pokémon; a party/storage containing only eggs is treated as a lost run.
 - Battle Frontier deaths are committed only when a challenge is completed through the facility's lobby. Resetting or quitting a challenge before it ends discards the faints it recorded — but the challenge itself is forfeited at the same time, so this is not a way to keep progress without consequences.

@@ -19,6 +19,7 @@
 #include "main.h"
 #include "menu.h"
 #include "nuzlocke.h"
+#include "difficulty.h"
 #include "mon_markings.h"
 #include "naming_screen.h"
 #include "overworld.h"
@@ -6793,6 +6794,9 @@ static bool8 TryStorePartyMonInBox(u8 boxId)
 
     if (boxId == StorageGetCurrentBox())
         CreateBoxMonIconAtPos(boxPosition);
+
+    // Difficulty: a boxed Pokemon loses its Momentum.
+    Difficulty_ResetMomentumByPersonality(GetBoxMonData(GetBoxedMonPtr(boxId, boxPosition), MON_DATA_PERSONALITY, NULL));
 
     StartSpriteAnim(sStorage->cursorSprite, CURSOR_ANIM_STILL);
     return TRUE;

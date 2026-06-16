@@ -50,6 +50,7 @@
 #include "constants/party_menu.h"
 #include "constants/rgb.h"
 #include "constants/songs.h"
+#include "difficulty.h"
 #include "constants/trainers.h"
 
 extern const u8 *const gBattleScriptsForMoveEffects[];
@@ -3345,27 +3346,25 @@ static void Cmd_getexp(void)
             u16 calculatedExp;
             s32 viaSentIn;
 
+            // Difficulty: modern party-wide EXP. Every living, non-egg party mon
+            // shares, so viaExpShare counts the whole living party (not just
+            // Exp Share *item* holders). The vanilla split below then hands out a
+            // participant bonus (*exp) plus a party base (gExpShareExp) to all.
+            // The item's per-mon bonus is removed in state 2 to avoid double-counting.
             for (viaSentIn = 0, i = 0; i < PARTY_SIZE; i++)
             {
-                if (GetMonData(&gPlayerParty[i], MON_DATA_SPECIES) == SPECIES_NONE || GetMonData(&gPlayerParty[i], MON_DATA_HP) == 0)
+                if (GetMonData(&gPlayerParty[i], MON_DATA_SPECIES) == SPECIES_NONE
+                 || GetMonData(&gPlayerParty[i], MON_DATA_HP) == 0
+                 || GetMonData(&gPlayerParty[i], MON_DATA_IS_EGG))
                     continue;
+                viaExpShare++; // party-wide: every living, non-egg mon shares
                 if (gBitTable[i] & sentIn)
                     viaSentIn++;
-
-                item = GetMonData(&gPlayerParty[i], MON_DATA_HELD_ITEM);
-
-                if (item == ITEM_ENIGMA_BERRY)
-                    holdEffect = gSaveBlock1Ptr->enigmaBerry.holdEffect;
-                else
-                    holdEffect = GetItemHoldEffect(item);
-
-                if (holdEffect == HOLD_EFFECT_EXP_SHARE)
-                    viaExpShare++;
             }
 
             calculatedExp = gSpeciesInfo[gBattleMons[gBattlerFainted].species].expYield * gBattleMons[gBattlerFainted].level / 7;
 
-            if (viaExpShare) // at least one mon is getting exp via exp share
+            if (viaExpShare) // always true here: the whole living party shares
             {
                 *exp = SAFE_DIV(calculatedExp / 2, viaSentIn);
                 if (*exp == 0)
@@ -3383,6 +3382,30 @@ static void Cmd_getexp(void)
                 gExpShareExp = 0;
             }
 
+            // Difficulty: grant Momentum to over-cap participants for this KO.
+            // Importance scales the gain: wild < trainer < gym leader < E4/Champion.
+            {
+                u8 importance = DIFFICULTY_OPP_WILD;
+                if (gBattleTypeFlags & BATTLE_TYPE_TRAINER)
+                {
+                    u8 trainerClass = gTrainers[gTrainerBattleOpponent_A].trainerClass;
+                    if (trainerClass == TRAINER_CLASS_LEADER)
+                        importance = DIFFICULTY_OPP_GYM;
+                    else if (trainerClass == TRAINER_CLASS_ELITE_FOUR || trainerClass == TRAINER_CLASS_CHAMPION)
+                        importance = DIFFICULTY_OPP_ELITE;
+                    else
+                        importance = DIFFICULTY_OPP_TRAINER;
+                }
+                for (i = 0; i < PARTY_SIZE; i++)
+                {
+                    if ((gBitTable[i] & sentIn)
+                     && GetMonData(&gPlayerParty[i], MON_DATA_SPECIES) != SPECIES_NONE
+                     && GetMonData(&gPlayerParty[i], MON_DATA_HP) != 0
+                     && !GetMonData(&gPlayerParty[i], MON_DATA_IS_EGG))
+                        Difficulty_AddMomentumForKO(&gPlayerParty[i], gBattleMons[gBattlerFainted].level, importance);
+                }
+            }
+
             gBattleScripting.getexpState++;
             gBattleStruct->expGetterMonId = 0;
             gBattleStruct->sentInPokes = sentIn;
@@ -3398,7 +3421,10 @@ static void Cmd_getexp(void)
             else
                 holdEffect = GetItemHoldEffect(item);
 
-            if (holdEffect != HOLD_EFFECT_EXP_SHARE && !(gBattleStruct->sentInPokes & 1))
+            // Difficulty: party-wide EXP - every living, non-egg mon is eligible.
+            // Eggs and max-level mons skip here; over-cap non-participants are
+            // filtered out after scaling (they receive no passive party EXP).
+            if (GetMonData(&gPlayerParty[gBattleStruct->expGetterMonId], MON_DATA_IS_EGG))
             {
                 *(&gBattleStruct->sentInPokes) >>= 1;
                 gBattleScripting.getexpState = 5;
@@ -3420,15 +3446,16 @@ static void Cmd_getexp(void)
                     gBattleStruct->wildVictorySong++;
                 }
 
+                gBattleMoveDamage = 0;
                 if (GetMonData(&gPlayerParty[gBattleStruct->expGetterMonId], MON_DATA_HP))
                 {
+                    // Participant bonus (*exp) plus the party-wide base (gExpShareExp,
+                    // added exactly once for every living mon). The Exp Share item
+                    // no longer adds a second share - that share is now universal.
                     if (gBattleStruct->sentInPokes & 1)
                         gBattleMoveDamage = *exp;
-                    else
-                        gBattleMoveDamage = 0;
+                    gBattleMoveDamage += gExpShareExp;
 
-                    if (holdEffect == HOLD_EFFECT_EXP_SHARE)
-                        gBattleMoveDamage += gExpShareExp;
                     if (holdEffect == HOLD_EFFECT_LUCKY_EGG)
                         gBattleMoveDamage = (gBattleMoveDamage * 150) / 100;
                     if (gBattleTypeFlags & BATTLE_TYPE_TRAINER)
@@ -3452,6 +3479,14 @@ static void Cmd_getexp(void)
                         i = STRINGID_EMPTYSTRING4;
                     }
 
+                    // Difficulty: over-cap scaling. At/under cap is unchanged;
+                    // over-cap participants get a reduced amount; over-cap
+                    // non-participants get 0 (no passive party EXP).
+                    gBattleMoveDamage = Difficulty_ScaleExp(gBattleMoveDamage, &gPlayerParty[gBattleStruct->expGetterMonId], (gBattleStruct->sentInPokes & 1));
+                }
+
+                if (gBattleMoveDamage != 0)
+                {
                     // get exp getter battler
                     if (gBattleTypeFlags & BATTLE_TYPE_DOUBLE)
                     {
@@ -3474,9 +3509,16 @@ static void Cmd_getexp(void)
 
                     PrepareStringBattle(STRINGID_PKMNGAINEDEXP, gBattleStruct->expGetterBattlerId);
                     MonGainEVs(&gPlayerParty[gBattleStruct->expGetterMonId], gBattleMons[gBattlerFainted].species);
+
+                    gBattleStruct->sentInPokes >>= 1;
+                    gBattleScripting.getexpState++;
                 }
-                gBattleStruct->sentInPokes >>= 1;
-                gBattleScripting.getexpState++;
+                else
+                {
+                    // Dead mon, or an over-cap non-participant: no EXP, no message.
+                    gBattleStruct->sentInPokes >>= 1;
+                    gBattleScripting.getexpState = 5;
+                }
             }
         }
         break;

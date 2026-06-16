@@ -16,6 +16,7 @@
 #include "party_menu.h"
 #include "pokedex.h"
 #include "pokemon.h"
+#include "difficulty.h"
 #include "random.h"
 #include "script.h"
 #include "sprite.h"
@@ -32,6 +33,9 @@ void HealPlayerParty(void)
     u8 i, j;
     u8 ppBonuses;
     u8 arg[4];
+
+    // Difficulty: a full party heal (Pokemon Center) resets all Momentum.
+    Difficulty_ResetAllMomentum();
 
     // restore HP.
     for(i = 0; i < gPlayerPartyCount; i++)

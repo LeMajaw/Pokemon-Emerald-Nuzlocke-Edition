@@ -277,12 +277,16 @@ FortreeCity_Gym_Text_WinonaPostBattle:
 	.string "devoted to BIRD POKéMON.$"
 
 FortreeCity_Gym_Text_GymStatue:
-	.string "FORTREE CITY POKéMON GYM$"
+	.string "FORTREE CITY POKéMON GYM\p"
+	.string "LEAGUE RECOMMENDED LEVEL:\n"
+	.string "33$"
 
 FortreeCity_Gym_Text_GymStatueCertified:
 	.string "FORTREE CITY POKéMON GYM\p"
 	.string "WINONA'S CERTIFIED TRAINERS:\n"
-	.string "{PLAYER}$"
+	.string "{PLAYER}\p"
+	.string "LEAGUE RECOMMENDED LEVEL:\n"
+	.string "33$"
 
 FortreeCity_Gym_Text_WinonaPreRematch:
 	.string "WINONA: We humans can never escape\n"

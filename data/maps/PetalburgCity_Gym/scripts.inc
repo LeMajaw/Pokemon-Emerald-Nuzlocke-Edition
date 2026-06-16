@@ -1544,12 +1544,16 @@ PetalburgCity_Gym_Text_EnterGymLeadersRoom:
 	.string "Do you want to go through?$"
 
 PetalburgCity_Gym_Text_GymStatue:
-	.string "PETALBURG CITY POKéMON GYM$"
+	.string "PETALBURG CITY POKéMON GYM\p"
+	.string "LEAGUE RECOMMENDED LEVEL:\n"
+	.string "31$"
 
 PetalburgCity_Gym_Text_GymStatueCertified:
 	.string "PETALBURG CITY POKéMON GYM\p"
 	.string "NORMAN'S CERTIFIED TRAINERS:\n"
-	.string "{PLAYER}$"
+	.string "{PLAYER}\p"
+	.string "LEAGUE RECOMMENDED LEVEL:\n"
+	.string "31$"
 
 PetalburgCity_Gym_Text_NormanPreRematch:
 	.string "DAD: {PLAYER}…\n"

@@ -11,6 +11,7 @@
 #include "bg.h"
 #include "contest.h"
 #include "data.h"
+#include "difficulty.h"
 #include "decompress.h"
 #include "easy_chat.h"
 #include "event_data.h"
@@ -4435,6 +4436,9 @@ void ItemUseCB_Medicine(u8 taskId, TaskFunc task)
     else
     {
         gPartyMenuUseExitCallback = TRUE;
+        // Difficulty: restoring a mon's own resources cools its Momentum
+        // (HP-recovery items 50%, pure status-cure items 75%).
+        Difficulty_ReduceMomentumForMon(mon, IsHPRecoveryItem(item) ? 50 : 75);
         if (!IsItemFlute(item))
         {
             PlaySE(SE_USE_ITEM);
@@ -4674,6 +4678,8 @@ static void TryUsePPItem(u8 taskId)
     {
         gPartyMenuUseExitCallback = TRUE;
         mon = &gPlayerParty[ptr->slotId];
+        // Difficulty: restoring PP cools the mon's Momentum (50%).
+        Difficulty_ReduceMomentumForMon(mon, 50);
         PlaySE(SE_USE_ITEM);
         RemoveBagItem(item, 1);
         move = GetMonData(mon, MON_DATA_MOVE1 + *moveSlot);

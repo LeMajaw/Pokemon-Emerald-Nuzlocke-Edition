@@ -1053,6 +1053,10 @@ static void ItemUseInBattle_ShowPartyMenu(u8 taskId)
 
 void ItemUseInBattle_Medicine(u8 taskId)
 {
+    // Difficulty: in-battle medicine reuses the shared party-menu callback
+    // (ItemUseCB_Medicine), so its Momentum reduction (HP 50% / status 75%)
+    // already applies in battle. Do NOT add a second reduction here - it would
+    // double-count with the callback.
     gItemUseCB = ItemUseCB_Medicine;
     ItemUseInBattle_ShowPartyMenu(taskId);
 }
@@ -1066,6 +1070,9 @@ void ItemUseInBattle_SacredAsh(u8 taskId)
 
 void ItemUseInBattle_PPRecovery(u8 taskId)
 {
+    // Difficulty: in-battle PP items reuse the shared party-menu PP path
+    // (TryUsePPItem), so its Momentum reduction (PP 50%) already applies in
+    // battle. Do NOT add a second reduction here - it would double-count.
     gItemUseCB = ItemUseCB_PPRecovery;
     ItemUseInBattle_ShowPartyMenu(taskId);
 }

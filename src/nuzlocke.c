@@ -13,6 +13,7 @@
 #include "title_screen.h"
 #include "window.h"
 #include "nuzlocke.h"
+#include "difficulty.h"
 #include "constants/battle.h"
 #include "constants/characters.h"
 #include "constants/flags.h"
@@ -424,6 +425,8 @@ void Nuzlocke_ProcessPartyDeaths(void)
         if (GetMonData(mon, MON_DATA_HP, NULL) != 0)
             continue;
 
+        // Difficulty: a dead Pokemon loses its Momentum.
+        Difficulty_ResetMomentumForMon(mon);
         // A non-egg party Pokemon at 0 HP fainted in a counting battle: it dies.
         if (MoveMonToGraveyard(mon))
             anyDied = TRUE;
