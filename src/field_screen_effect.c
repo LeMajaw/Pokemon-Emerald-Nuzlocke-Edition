@@ -20,6 +20,7 @@
 #include "menu.h"
 #include "mirage_tower.h"
 #include "metatile_behavior.h"
+#include "bg.h"
 #include "palette.h"
 #include "overworld.h"
 #include "scanline_effect.h"
@@ -306,6 +307,19 @@ void FieldCB_NuzlockeGameOver(void)
     // which writes its own colours to both palette buffers directly, so the
     // dialog is still visible against the clean black background.
     CpuFastFill16(RGB_BLACK, gPlttBufferUnfaded, PLTT_SIZE);
+    // Blank the map background layers (BG1-3) so no map tiles - grass, trees,
+    // building interiors - remain behind the Game Over window. Palette-only
+    // blackening is not enough: the title/message window loads its own colours
+    // into BG palette slots that map tiles also use, which would otherwise make
+    // those tiles reappear. The window itself lives on BG0 and is untouched.
+    // Both Game Over paths (immediate loss and memorial-save load) run this
+    // callback, so both render an identical clean black background.
+    FillBgTilemapBufferRect_Palette0(1, 0, 0, 0, 32, 32);
+    FillBgTilemapBufferRect_Palette0(2, 0, 0, 0, 32, 32);
+    FillBgTilemapBufferRect_Palette0(3, 0, 0, 0, 32, 32);
+    CopyBgTilemapBufferToVram(1);
+    CopyBgTilemapBufferToVram(2);
+    CopyBgTilemapBufferToVram(3);
     FadeInFromBlack();
     ScriptContext_SetupScript(EventScript_NuzlockeGameOver);
     LockPlayerFieldControls();

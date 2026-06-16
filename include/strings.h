@@ -939,6 +939,7 @@ extern const u8 gText_UsedVar2WildRepelled[];
 extern const u8 gText_BoxFull[];
 extern const u8 gText_NuzlockeEncounterUsed[];
 extern const u8 gText_NuzlockeLegendaryBlocked[];
+extern const u8 gText_NuzlockeDuplicateBlocked[];
 extern const u8 gText_WontHaveEffect[];
 
 extern const u8 gText_LevelSymbol[];

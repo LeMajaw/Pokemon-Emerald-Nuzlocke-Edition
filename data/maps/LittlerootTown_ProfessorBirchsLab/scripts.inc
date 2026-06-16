@@ -514,6 +514,20 @@ LittlerootTown_ProfessorBirchsLab_EventScript_GivePokedex::
 	checkplayergender
 	call_if_eq VAR_RESULT, MALE, LittlerootTown_ProfessorBirchsLab_EventScript_MayGivePokeBalls
 	call_if_eq VAR_RESULT, FEMALE, LittlerootTown_ProfessorBirchsLab_EventScript_BrendanGivePokeBalls
+	@ Nuzlocke (Dupes Clause): one-time run setup choice, asked exactly once,
+	@ right after the Poke Ball handoff. Default (cursor and B press) is NO,
+	@ which keeps the current behavior: duplicates count as first encounters.
+	msgbox LittlerootTown_ProfessorBirchsLab_Text_NuzlockeAskDupesClause, MSGBOX_DEFAULT
+	multichoicedefault 20, 8, MULTI_YESNO, 1, FALSE
+	switch VAR_RESULT
+	case 0, LittlerootTown_ProfessorBirchsLab_EventScript_NuzlockeDupesYes
+LittlerootTown_ProfessorBirchsLab_EventScript_NuzlockeDupesNo::
+	msgbox LittlerootTown_ProfessorBirchsLab_Text_NuzlockeDupesDisabled, MSGBOX_DEFAULT
+	goto LittlerootTown_ProfessorBirchsLab_EventScript_NuzlockeStart
+LittlerootTown_ProfessorBirchsLab_EventScript_NuzlockeDupesYes::
+	setflag FLAG_NUZLOCKE_DUPES_CLAUSE
+	msgbox LittlerootTown_ProfessorBirchsLab_Text_NuzlockeDupesEnabled, MSGBOX_DEFAULT
+LittlerootTown_ProfessorBirchsLab_EventScript_NuzlockeStart::
 	@ Nuzlocke (Rule 16): the challenge officially begins the moment the rival
 	@ has handed over the Poke Balls. FLAG_ADVENTURE_STARTED (set below) is the
 	@ activation gate for first-encounter tracking.
@@ -812,6 +826,27 @@ LittlerootTown_ProfessorBirchsLab_Text_NuzlockeChallengeBegins:
 	.string "Only your first encounter in each\n"
 	.string "area may be caught.\p"
 	.string "Make every battle count…$"
+
+LittlerootTown_ProfessorBirchsLab_Text_NuzlockeAskDupesClause:
+	.string "Before your challenge begins,\n"
+	.string "choose your DUPES CLAUSE rule.\p"
+	.string "If DUPES CLAUSE is off, your first\n"
+	.string "encounter always counts, even if\l"
+	.string "you already own that species.\p"
+	.string "If DUPES CLAUSE is on, living\n"
+	.string "POKéMON you already own will not\l"
+	.string "count as first encounters.\p"
+	.string "Enable DUPES CLAUSE?$"
+
+LittlerootTown_ProfessorBirchsLab_Text_NuzlockeDupesDisabled:
+	.string "DUPES CLAUSE disabled.\p"
+	.string "The first encounter in each area\n"
+	.string "will always count.$"
+
+LittlerootTown_ProfessorBirchsLab_Text_NuzlockeDupesEnabled:
+	.string "DUPES CLAUSE enabled.\p"
+	.string "Living POKéMON already owned will\n"
+	.string "not count as first encounters.$"
 
 LittlerootTown_ProfessorBirchsLab_Text_SeriousLookingMachine:
 	.string "It's a serious-looking machine.\n"

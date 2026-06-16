@@ -250,6 +250,8 @@ const u8 gText_BoxFull[] = _("The BOX is full.{PAUSE_UNTIL_PRESS}");
 // Nuzlocke (Rule 16): Poke Ball blocked in the Bag during wild battles.
 const u8 gText_NuzlockeEncounterUsed[] = _("This area's first encounter has\nalready been used!\pThe POKé BALL can't be thrown.{PAUSE_UNTIL_PRESS}");
 const u8 gText_NuzlockeLegendaryBlocked[] = _("LEGENDARY POKéMON can't be caught\nin this challenge!\pThe POKé BALL can't be thrown.{PAUSE_UNTIL_PRESS}");
+// Nuzlocke (Dupes Clause): duplicate of a living owned Pokemon.
+const u8 gText_NuzlockeDuplicateBlocked[] = _("You already have a living POKéMON\nof that species!\pThe POKé BALL can't be thrown.{PAUSE_UNTIL_PRESS}");
 const u8 gText_PowderQty[] = _("POWDER QTY: {STR_VAR_1}{PAUSE_UNTIL_PRESS}");
 const u8 gText_TheField[] = _("the field");
 const u8 gText_TheBattle[] = _("the battle");

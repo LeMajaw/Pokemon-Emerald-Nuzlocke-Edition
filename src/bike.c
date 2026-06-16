@@ -1055,7 +1055,11 @@ void Bike_HandleBumpySlopeJump(void)
 
 bool32 IsRunningDisallowed(u8 metatile)
 {
-    if (!gMapHeader.allowRunning || IsRunningDisallowedByMetatile(metatile) == TRUE)
+    // The per-map allowRunning header flag is intentionally ignored so the
+    // player can run inside buildings. Metatile restrictions (MB_NO_RUNNING,
+    // long grass, hot springs, Pacifidlog logs, low Fortree bridges) still
+    // apply everywhere.
+    if (IsRunningDisallowedByMetatile(metatile) == TRUE)
         return TRUE;
     else
         return FALSE;

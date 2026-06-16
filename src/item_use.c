@@ -963,6 +963,8 @@ void ItemUseInBattle_PokeBall(u8 taskId)
             blockMsg = gText_NuzlockeLegendaryBlocked;
         else if (Nuzlocke_IsCatchRuleActive() && Nuzlocke_IsCurrentCatchAreaConsumed())
             blockMsg = gText_NuzlockeEncounterUsed;
+        else if (Nuzlocke_IsCurrentEncounterDuplicate())
+            blockMsg = gText_NuzlockeDuplicateBlocked;
     }
 
     if (blockMsg != NULL)

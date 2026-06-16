@@ -190,6 +190,11 @@ BattleScript_NuzlockeSafariLegendaryBlocked::
 	waitmessage B_WAIT_TIME_LONG
 	end2
 
+BattleScript_NuzlockeSafariDuplicateBlocked::
+	printstring STRINGID_NUZLOCKEDUPLICATEBLOCKED
+	waitmessage B_WAIT_TIME_LONG
+	end2
+
 BattleScript_ActionGetNear:
 	printfromtable gSafariGetNearStringIds
 	waitmessage B_WAIT_TIME_LONG

@@ -224,5 +224,6 @@ extern const u8 BattleScript_ActionGetNear[];
 extern const u8 BattleScript_ActionThrowPokeblock[];
 extern const u8 BattleScript_NuzlockeSafariEncounterUsed[];
 extern const u8 BattleScript_NuzlockeSafariLegendaryBlocked[];
+extern const u8 BattleScript_NuzlockeSafariDuplicateBlocked[];
 
 #endif // GUARD_BATTLE_SCRIPTS_H

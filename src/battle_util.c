@@ -570,6 +570,13 @@ void HandleAction_SafariZoneBallThrow(void)
         gCurrentActionFuncId = B_ACTION_EXEC_SCRIPT;
         return;
     }
+    // Dupes Clause: duplicates of living owned Pokemon are uncatchable.
+    if (Nuzlocke_IsCurrentEncounterDuplicate())
+    {
+        gBattlescriptCurrInstr = BattleScript_NuzlockeSafariDuplicateBlocked;
+        gCurrentActionFuncId = B_ACTION_EXEC_SCRIPT;
+        return;
+    }
 
     gNumSafariBalls--;
     gLastUsedItem = ITEM_SAFARI_BALL;

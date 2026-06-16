@@ -61,6 +61,11 @@ bool32 Nuzlocke_IsCatchRuleActive(void);
 bool32 Nuzlocke_IsCurrentCatchAreaConsumed(void);
 // TRUE if a thrown ball would target a banned legendary (Rule 16).
 bool32 Nuzlocke_IsBallTargetLegendary(void);
+// Dupes Clause (optional, chosen once at the run-setup question).
+bool32 Nuzlocke_IsDupesClauseEnabled(void);
+// TRUE if the current wild encounter duplicates a living owned Pokemon:
+// uncatchable, and it does not consume the catch area.
+bool32 Nuzlocke_IsCurrentEncounterDuplicate(void);
 
 // Graveyard box queries (used by the PC storage system, Rule 3).
 // The Graveyard occupies the last two PC boxes; living storage is the rest.

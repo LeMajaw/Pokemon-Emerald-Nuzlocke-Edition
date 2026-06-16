@@ -306,6 +306,64 @@ bool32 Nuzlocke_IsBallTargetLegendary(void)
     return FALSE;
 }
 
+// Dupes Clause: TRUE if the player opted in at the one-time run-setup choice
+// in Birch's Lab. Clear (the default, and the state of every existing save)
+// means duplicates count as first encounters, exactly as before.
+bool32 Nuzlocke_IsDupesClauseEnabled(void)
+{
+    return FlagGet(FLAG_NUZLOCKE_DUPES_CLAUSE);
+}
+
+// Dupes Clause: TRUE if a living Pokemon of this species is owned - in the
+// party (non-egg, HP above zero, so a mon dying in the current battle has
+// already stopped counting) or anywhere in the living boxes 1..12 (boxed mons
+// have no HP; presence outside the Graveyard means alive). The Graveyard
+// never counts: a species whose only members are dead may be encountered
+// again. Eggs never count: their species is not yet usable.
+static bool32 IsSpeciesAliveOwned(u16 species)
+{
+    u32 i, box, pos;
+
+    for (i = 0; i < PARTY_SIZE; i++)
+    {
+        struct Pokemon *mon = &gPlayerParty[i];
+
+        if (GetMonData(mon, MON_DATA_SPECIES, NULL) != species)
+            continue;
+        if (GetMonData(mon, MON_DATA_IS_EGG, NULL))
+            continue;
+        if (GetMonData(mon, MON_DATA_HP, NULL) == 0)
+            continue;
+        return TRUE;
+    }
+
+    for (box = 0; box < Nuzlocke_GetLivingBoxCount(); box++)
+    {
+        for (pos = 0; pos < IN_BOX_COUNT; pos++)
+        {
+            struct BoxPokemon *boxMon = GetBoxedMonPtr(box, pos);
+
+            if (GetBoxMonData(boxMon, MON_DATA_SPECIES, NULL) != species)
+                continue;
+            if (GetBoxMonData(boxMon, MON_DATA_IS_EGG, NULL))
+                continue;
+            return TRUE;
+        }
+    }
+
+    return FALSE;
+}
+
+// Dupes Clause: TRUE if the current wild encounter duplicates a living owned
+// Pokemon and is therefore ignored by first-encounter tracking - it cannot be
+// caught and it does not consume the catch area.
+bool32 Nuzlocke_IsCurrentEncounterDuplicate(void)
+{
+    if (!Nuzlocke_IsDupesClauseEnabled())
+        return FALSE;
+    return IsSpeciesAliveOwned(GetMonData(&gEnemyParty[0], MON_DATA_SPECIES, NULL));
+}
+
 // Rule 4: when a Pokemon dies, try to move its held item into the Bag so the
 // player can keep using it. If the Bag has no room, the item stays attached to
 // the dead Pokemon and travels to the Graveyard, where it can be retrieved
@@ -524,8 +582,16 @@ void Nuzlocke_OnBattleEnd(void)
 
     // Rule 16: a finished wild encounter uses up its catch area, regardless
     // of how the battle ended. Only once the challenge has officially begun.
+    // Dupes Clause: a duplicate of a living owned Pokemon is ignored by the
+    // tracking entirely, leaving the area available. A catch is always valid:
+    // a duplicate can never be caught (the ball is blocked), and checking
+    // after a catch would wrongly see the just-caught mon as its own
+    // duplicate and leave the area open.
     if (Nuzlocke_IsCatchRuleActive() && IsConsumingWildBattle(gBattleTypeFlags))
-        ConsumeCurrentCatchArea();
+    {
+        if (gBattleOutcome == B_OUTCOME_CAUGHT || !Nuzlocke_IsCurrentEncounterDuplicate())
+            ConsumeCurrentCatchArea();
+    }
 
     if (Nuzlocke_BattleCountsAsDeath(gBattleTypeFlags))
         Nuzlocke_ProcessPartyDeaths();

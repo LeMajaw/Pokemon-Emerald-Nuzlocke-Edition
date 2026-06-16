@@ -1014,6 +1014,11 @@ static void PrintNameOnCardFront(void)
         AddTextPrinterParameterized3(WIN_CARD_TEXT, FONT_NORMAL, 16, 33, sTrainerCardTextColors, TEXT_SKIP_DRAW, buffer);
 }
 
+// Nuzlocke: run ruleset tag shown after the ID on the player's own card.
+// DA = dupes allowed (Dupes Clause off), DN = dupes not allowed (on).
+static const u8 sText_NuzlockeDupesAllowed[]    = _("  DA");
+static const u8 sText_NuzlockeDupesNotAllowed[] = _("  DN");
+
 static void PrintIdOnCard(void)
 {
     u8 buffer[32];
@@ -1022,6 +1027,12 @@ static void PrintIdOnCard(void)
     u32 top;
     txtPtr = StringCopy(buffer, gText_TrainerCardIDNo);
     ConvertIntToDecimalStringN(txtPtr, sData->trainerCard.trainerId, STR_CONV_MODE_LEADING_ZEROS, 5);
+    // Nuzlocke Dupes Clause tag - only on the player's own card, never on
+    // link partners' cards (the flag describes this save's run, not theirs).
+    if (!sData->isLink)
+        StringAppend(buffer, FlagGet(FLAG_NUZLOCKE_DUPES_CLAUSE)
+                             ? sText_NuzlockeDupesNotAllowed
+                             : sText_NuzlockeDupesAllowed);
     if (sData->cardType == CARD_TYPE_FRLG)
     {
         xPos = GetStringCenterAlignXOffset(FONT_NORMAL, buffer, 80) + 132;

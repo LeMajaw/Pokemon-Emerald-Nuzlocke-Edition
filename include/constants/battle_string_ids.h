@@ -381,8 +381,9 @@
 // Nuzlocke (Rule 16): Safari Ball action blocked.
 #define STRINGID_NUZLOCKEENCOUNTERUSED      381
 #define STRINGID_NUZLOCKELEGENDARYBLOCKED   382
+#define STRINGID_NUZLOCKEDUPLICATEBLOCKED   383
 
-#define BATTLESTRINGS_COUNT                 383
+#define BATTLESTRINGS_COUNT                 384
 
 // This is the string id that gBattleStringsTable starts with.
 // String ids before this (e.g. STRINGID_INTROMSG) are not in the table,

@@ -1744,12 +1744,29 @@ void CB2_WhiteOut(void)
         // Nuzlocke (Rule 5): DoWhiteOut above already attempted the preferred
         // recovery (withdrawing a living boxed Pokemon into the empty party).
         // If no living, non-egg Pokemon exists anywhere - eggs never count -
-        // the run is lost: show Game Over and return to the title instead of
-        // resuming normal play.
-        if (Nuzlocke_HasLivingPokemon())
-            gFieldCallback = FieldCB_WarpExitFadeFromBlack;
-        else
+        // the run is lost.
+        if (!Nuzlocke_HasLivingPokemon())
+        {
+            // Render the Game Over through the SAME field-return path the
+            // memorial-save load uses (CB2_ContinueSavedGame -> CB2_ReturnToField
+            // -> ReturnToFieldLocal). The normal whiteout below brings up the
+            // field through the warp map-load loop (DoMapLoadLoop), which runs
+            // the whole load and the field callback synchronously and leaves the
+            // window/BG/palette system in a different state than a clean
+            // return-to-field; drawing the "GAME OVER" title window from that
+            // state misaligned it. Going through CB2_ReturnToField initializes
+            // the field identically to the loaded-memorial path, so the
+            // immediate-loss and memorial-load Game Over screens render the same.
+            // CB2_ReturnToField drives its state machine off gMain.state, which
+            // is >=120 here, so reset it first. The Game Over script still writes
+            // the memorial save before returning to the title screen.
             gFieldCallback = FieldCB_NuzlockeGameOver;
+            gMain.state = 0;
+            SetMainCallback1(CB1_Overworld);
+            CB2_ReturnToField();
+            return;
+        }
+        gFieldCallback = FieldCB_WarpExitFadeFromBlack;
         state = 0;
         DoMapLoadLoop(&state);
         SetFieldVBlankCallback();
