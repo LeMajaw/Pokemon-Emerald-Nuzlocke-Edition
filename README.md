@@ -60,6 +60,12 @@ Player-to-player trading is disabled (the Cable Club Trade Center refuses with a
 
 Impact: You can't launder deaths through the link cable, but scripted story trades still work.
 
+#### Optional Dupes Clause
+
+The Dupes Clause is an optional rule you turn on or off once, during run setup: in Professor Birch's Lab, right after the rival hands over your Poké Balls, you're asked whether to enable it (it is **off by default**). When enabled, a wild Pokémon of a species you already own **alive** doesn't count as that area's first encounter — you can't catch it (the Poké Ball or Safari Ball is blocked and not consumed), and the area stays open, so the next *new* species you meet there still counts as your first encounter. When disabled, every first encounter counts as normal. Your Trainer Card shows a small `DA` (dupes allowed) or `DN` (dupes not allowed) tag after your ID so you always know which rule your run is using.
+
+Impact: Lets you play the popular "no duplicates" variant — more team variety, no encounters wasted on a species you already have — entirely at your choice. The strict default ruleset is unchanged when it is left off.
+
 ### Battle Changes
 
 #### Battle Validity Classification
@@ -126,7 +132,7 @@ Impact: You never resume play with an empty or egg-only party as long as a livin
 
 #### Run Loss & Memorial Save
 
-If no living, non-Egg Pokémon remain anywhere (party and living boxes 1–12; eggs and Graveyard Pokémon never count), the run is lost. A "GAME OVER" message is shown, a memorial save is written (never deleting or corrupting your file), and the game returns to the title screen. Loading a memorial save immediately re-triggers the Game Over, so a lost run can never resume normal play.
+If no living, non-Egg Pokémon remain anywhere (party and living boxes 1–12; eggs and Graveyard Pokémon never count), the run is lost. A "GAME OVER" message is shown on a clean black screen, a memorial save is written (never deleting or corrupting your file), and the game returns to the title screen. The screen you see the moment the run ends and the one you see when you reload a memorial save are identical. Loading a memorial save immediately re-triggers the Game Over, so a lost run can never resume normal play.
 
 Impact: A wipe with nothing left is a true end-state — the run is over and the save stands as a record of it.
 
@@ -144,6 +150,12 @@ New games default to **Fast** text speed instead of Mid.
 
 Impact: Less waiting on text out of the box; still adjustable in Options.
 
+#### Indoor Running
+
+Your Running Shoes work indoors — you can run inside houses, Poké Marts, Gyms, and other buildings, not just outdoors. Tiles the game blocks running on for other reasons (long grass, certain bridges, and similar) still can't be run on, indoors or out, and outdoor running is exactly as before.
+
+Impact: Faster movement inside buildings, a common quality-of-life expectation.
+
 ### UI Improvements
 
 #### Graveyard's PC Interface
@@ -158,11 +170,11 @@ Living boxes 1–12 use a repeating Forest / City / Savanna / Desert wallpaper r
 
 Impact: The Graveyard is instantly recognizable, and its appearance is locked.
 
-#### Game Over Title Window
+#### Game Over Screen
 
-The run-loss screen draws a centered "GAME OVER" title window above the memorial message.
+The run-loss screen shows a centered "GAME OVER" title window above the memorial message on a clean black background — no leftover overworld tiles. It looks the same whether the run just ended or you reloaded a memorial save.
 
-Impact: A clear, deliberate presentation of the end of a run.
+Impact: A clear, consistent end-of-run screen every time.
 
 ### Technical Features
 
@@ -192,6 +204,9 @@ A concise summary of everything that differs from pret/pokeemerald in the Nuzloc
 - A full auto-save fires after any death to prevent soft-reset abuse.
 - PC wallpapers: living boxes rotate Forest/City/Savanna/Desert; "Simple" is Graveyard-only.
 - New-game default text speed is Fast.
+- Running Shoes work indoors (other running restrictions still apply; outdoor running unchanged).
+- Optional Dupes Clause (off by default, chosen once in Birch's Lab): when on, a species you already own alive doesn't count as an area's first encounter and can't be caught, and the area stays open.
+- The immediate-loss Game Over and the memorial-save Game Over use one shared display flow and render the same clean screen.
 - No changes to Pokémon data, trainers, maps, encounters, or story.
 
 ## Technical Notes
@@ -204,7 +219,7 @@ A concise summary of everything that differs from pret/pokeemerald in the Nuzloc
 
 ## Known Limitations
 
-- Optional Nuzlocke clauses are intentionally **not** enforced: there is no Dupes clause, Species clause, or Shiny clause. Captures are limited only by the first-encounter-per-area and legendary rules above.
+- The Species Clause and Shiny Clause are not enforced. (The Dupes Clause *is* supported, as an optional setting — see the Optional Dupes Clause feature above.)
 - The Graveyard holds at most 60 Pokémon (two boxes of 30). If it is ever completely full, a newly fallen Pokémon is left in place rather than lost.
 - Eggs never count as living Pokémon; a party/storage containing only eggs is treated as a lost run.
 - Battle Frontier deaths are committed only when a challenge is completed through the facility's lobby. Resetting or quitting a challenge before it ends discards the faints it recorded — but the challenge itself is forfeited at the same time, so this is not a way to keep progress without consequences.
@@ -215,6 +230,12 @@ A concise summary of everything that differs from pret/pokeemerald in the Nuzloc
 - `make compare` will not match vanilla Emerald on this branch.
 
 ## Changelog
+
+### v1.0.1 — Restored features & Game Over fix
+
+- Fixed the Game Over screen drawing stray overworld plant/tree tiles around the window. The immediate-loss and memorial-save Game Over now share one display flow and render an identical clean screen; memorial saves remain non-playable.
+- Restored the optional Dupes Clause (off-by-default run-setup choice in Birch's Lab, with a Trainer Card `DA`/`DN` tag) after it was lost during branch migration.
+- Restored indoor Running Shoes (other running restrictions and outdoor running unchanged) after it regressed during branch migration.
 
 ### v1.0.0 — Nuzlocke Edition
 
