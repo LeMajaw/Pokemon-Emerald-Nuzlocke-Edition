@@ -1660,12 +1660,6 @@ static void Task_StartActivity(u8 taskId)
 
     switch (gPlayerCurrActivity)
     {
-    case ACTIVITY_TRADE:
-    case ACTIVITY_TRADE | IN_UNION_ROOM:
-        DestroyTask(taskId);
-        gSpecialVar_Result = LINKUP_FAILED;
-        UnlockPlayerFieldControls();
-        return;
     case ACTIVITY_BATTLE_SINGLE | IN_UNION_ROOM:
     case ACTIVITY_ACCEPT | IN_UNION_ROOM:
         CleanupOverworldWindowsAndTilemaps();
@@ -1700,20 +1694,16 @@ static void Task_StartActivity(u8 taskId)
         SetMainCallback2(CB2_TransitionToCableClub);
         break;
     case ACTIVITY_TRADE:
-        CreateTrainerCardInBuffer(gBlockSendBuffer, TRUE);
-        CleanupOverworldWindowsAndTilemaps();
-        WarpForCableClubActivity(MAP_GROUP(MAP_TRADE_CENTER), MAP_NUM(MAP_TRADE_CENTER), 5, 8, USING_TRADE_CENTER);
-        SetMainCallback2(CB2_TransitionToCableClub);
-        break;
+    case ACTIVITY_TRADE | IN_UNION_ROOM:
+        DestroyTask(taskId);
+        gSpecialVar_Result = LINKUP_FAILED;
+        UnlockPlayerFieldControls();
+        return;
     case ACTIVITY_RECORD_CORNER:
         CreateTrainerCardInBuffer(gBlockSendBuffer, TRUE);
         CleanupOverworldWindowsAndTilemaps();
         WarpForCableClubActivity(MAP_GROUP(MAP_RECORD_CORNER), MAP_NUM(MAP_RECORD_CORNER), 8, 9, USING_RECORD_CORNER);
         SetMainCallback2(CB2_TransitionToCableClub);
-        break;
-    case ACTIVITY_TRADE | IN_UNION_ROOM:
-        CleanupOverworldWindowsAndTilemaps();
-        CreateTask(Task_StartUnionRoomTrade, 0);
         break;
     case ACTIVITY_CHAT:
     case ACTIVITY_CHAT | IN_UNION_ROOM:
