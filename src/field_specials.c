@@ -156,8 +156,12 @@ void Special_ViewWallClock(void)
 void GetDayOrNight(void)
 {
     u8 nightOrDay;
+    s32 hours;
     RtcCalcLocalTime();
-    if (gLocalTime.hours >= 8 && gLocalTime.hours <= 19)
+    // Use the accelerated day/night clock (shared with UpdateTimeOfDay) so wild
+    // encounters track the same sped-up cycle as the visuals.
+    hours = GetAcceleratedTimeOfDay(NULL);
+    if (hours >= 8 && hours <= 19)
     {
         nightOrDay = 0; // Day
     }

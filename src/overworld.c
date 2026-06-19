@@ -1491,8 +1491,15 @@ const struct BlendSettings gTimeOfDayBlend[] =
 u8 UpdateTimeOfDay(void) {
     s32 hours, minutes;
     RtcCalcLocalTime();
-    hours = sHoursOverride ? sHoursOverride : gLocalTime.hours;
-    minutes = sHoursOverride ? 0 : gLocalTime.minutes;
+    if (sHoursOverride)
+    {
+        hours = sHoursOverride;
+        minutes = 0;
+    }
+    else
+    {
+        hours = GetAcceleratedTimeOfDay(&minutes);
+    }
     switch (hours)
     {
     case 0 ... 3: // night
@@ -1642,7 +1649,10 @@ static void OverworldBasic(void)
         struct TimeBlendSettings cachedBlend = currentTimeBlend;
         u32 *bld0 = (u32*)&cachedBlend;
         u32 *bld1 = (u32*)&currentTimeBlend;
-        gTimeUpdateCounter = 3600;
+        // Refresh ~once per in-game minute. In-game time runs 24x real, so an
+        // in-game minute is 60/24 = 2.5 real seconds = 150 VBlanks (was 3600,
+        // i.e. one real minute, before the day/night cycle was accelerated).
+        gTimeUpdateCounter = 150;
         UpdateTimeOfDay();
         if (bld0[0] != bld1[0]
             || bld0[1] != bld1[1]

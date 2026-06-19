@@ -344,3 +344,24 @@ u32 RtcGetLocalDayCount(void)
 {
     return RtcGetDayCount(&sRtc);
 }
+
+// Day/night acceleration: a full 24h in-game cycle completes in this many real
+// minutes (vanilla would be 24*60 = 1440). 60 => in-game time runs 24x real.
+#define DAY_NIGHT_CYCLE_REAL_MINUTES 60
+
+// Returns the accelerated in-game hour (0..23) and, if minutesOut is non-NULL,
+// the in-game minute (0..59), derived from the real clock WITHOUT modifying the
+// RTC. Shared by UpdateTimeOfDay (visuals) and GetDayOrNight (encounters) so the
+// two can never drift apart. The caller must refresh gLocalTime first.
+// Because one full cycle == DAY_NIGHT_CYCLE_REAL_MINUTES == exactly one real
+// hour, the cycle position is just the real minute+second of the hour - the day
+// and hour terms are whole multiples of the cycle and cancel, so there is no
+// overflow and no dependence on the (possibly large/negative) day count.
+s32 GetAcceleratedTimeOfDay(s32 *minutesOut)
+{
+    s32 cycleSec = gLocalTime.minutes * 60 + gLocalTime.seconds;        // 0..3599
+    s32 inGameMin = cycleSec * 1440 / (DAY_NIGHT_CYCLE_REAL_MINUTES * 60); // 0..1439
+    if (minutesOut != NULL)
+        *minutesOut = inGameMin % 60;
+    return inGameMin / 60;
+}
