@@ -157,9 +157,9 @@ void GetDayOrNight(void)
 {
     u8 nightOrDay;
     s32 hours;
-    RtcCalcLocalTime();
-    // Use the accelerated day/night clock (shared with UpdateTimeOfDay) so wild
-    // encounters track the same sped-up cycle as the visuals.
+    // Use the accelerated (gameplay/frame-based) day/night clock shared with
+    // UpdateTimeOfDay so wild encounters track the same sped-up cycle as the
+    // visuals. No RtcCalcLocalTime: this cycle is play-time based, not RTC based.
     hours = GetAcceleratedTimeOfDay(NULL);
     if (hours >= 8 && hours <= 19)
     {

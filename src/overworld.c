@@ -1490,7 +1490,6 @@ const struct BlendSettings gTimeOfDayBlend[] =
 
 u8 UpdateTimeOfDay(void) {
     s32 hours, minutes;
-    RtcCalcLocalTime();
     if (sHoursOverride)
     {
         hours = sHoursOverride;
