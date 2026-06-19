@@ -118,7 +118,7 @@ Impact: Healing only ever applies to living Pokémon — a corpse stays a corpse
 
 #### Link Stone (Trade Evolutions)
 
-Because trading is disabled, a new **Link Stone** item stands in for it. Used on a Pokémon that would normally evolve by trading, it triggers that exact evolution and is consumed — covering both plain trade evolutions (Kadabra, Machoke, Graveler, Haunter) and held-item trade evolutions (e.g. Onix or Scyther holding a Metal Coat, Seadra holding a Dragon Scale, Clamperl holding a Deep Sea Tooth/Scale), which still require the appropriate held item just as a real trade would. It sells at the Lilycove Department Store (3F).
+Because trading is disabled, a new **Link Stone** item stands in for it. Used on a Pokémon that would normally evolve by trading, it triggers that exact evolution and is consumed — covering both plain trade evolutions (Kadabra, Machoke, Graveler, Haunter) and held-item trade evolutions (e.g. Onix or Scyther holding a Metal Coat, Seadra holding a Dragon Scale, Clamperl holding a Deep Sea Tooth/Scale), which still require the appropriate held item just as a real trade would. President Stone gives one at the Devon Corporation in Rustboro for delivering his Letter — replacing the old Exp. Share reward — and it also sells at the Lilycove Department Store (3F) and is a Lottery Corner prize.
 
 Impact: Trade-only evolutions remain obtainable in a single-player Nuzlocke without ever touching the link cable.
 
@@ -243,7 +243,7 @@ A concise summary of everything that differs from pret/pokeemerald in the Nuzloc
 - Optional Dupes Clause (off by default, chosen once in Birch's Lab): when on, a species you already own alive doesn't count as an area's first encounter and can't be caught, and the area stays open.
 - The immediate-loss Game Over and the memorial-save Game Over use one shared display flow and render the same clean screen.
 - Recommended levels are shown on Gym statues; Pokémon over the band earn reduced EXP and must participate in battle to gain any.
-- Modern party-wide EXP: every living party Pokémon gains EXP from a victory (the Exp Share item is now redundant).
+- Modern party-wide EXP: every living party Pokémon gains EXP from a victory via a level-scaled formula; the Exp Share item is removed from play (Devon Corp and the Lottery now give the Link Stone instead).
 - Momentum: over-leveled Pokémon regain EXP efficiency (up to 50%) by winning meaningful battles, and lose it by healing/boxing/fainting or using HP/PP/status items. Momentum is runtime-only and adds no save data.
 - No changes to Pokémon data, trainers, maps, encounters, or story.
 
