@@ -435,6 +435,7 @@ static const u8 *const sTradeReactionTexts[GENDER_COUNT][4] = {
 };
 
 ALIGNED(4) static const u8 sText_XCheckedTradingBoard[] = _("{STR_VAR_1} checked the\nTRADING BOARD.\p");
+ALIGNED(4) static const u8 sText_TradingDisabledNuzlocke[] = _("Trading POKéMON with other\nplayers is not allowed on this\ladventure.\p");
 ALIGNED(4) static const u8 sText_RegisterMonAtTradingBoard[] = _("Welcome to the TRADING BOARD.\pYou may register your POKéMON\nand offer it up for a trade.\pWould you like to register one of\nyour POKéMON?");
 ALIGNED(4) static const u8 sText_TradingBoardInfo[] = _("This TRADING BOARD is used for\n"
                                                         "offering a POKéMON for a trade.\p"
@@ -642,7 +643,7 @@ static const u32 sLinkGroupToActivityAndCapacity[NUM_LINK_GROUP_TYPES] = {
     [LINK_GROUP_SINGLE_BATTLE]     = ACTIVITY_BATTLE_SINGLE     | LINK_GROUP_CAPACITY(0, 2),
     [LINK_GROUP_DOUBLE_BATTLE]     = ACTIVITY_BATTLE_DOUBLE     | LINK_GROUP_CAPACITY(0, 2),
     [LINK_GROUP_MULTI_BATTLE]      = ACTIVITY_BATTLE_MULTI      | LINK_GROUP_CAPACITY(0, 4),
-    [LINK_GROUP_TRADE]             = ACTIVITY_TRADE             | LINK_GROUP_CAPACITY(0, 2),
+    [LINK_GROUP_TRADE]             = ACTIVITY_NONE              | LINK_GROUP_CAPACITY(0, 0),
     [LINK_GROUP_POKEMON_JUMP]      = ACTIVITY_POKEMON_JUMP      | LINK_GROUP_CAPACITY(2, 5),
     [LINK_GROUP_BERRY_CRUSH]       = ACTIVITY_BERRY_CRUSH       | LINK_GROUP_CAPACITY(2, 5),
     [LINK_GROUP_BERRY_PICKING]     = ACTIVITY_BERRY_PICK        | LINK_GROUP_CAPACITY(3, 5),
@@ -1021,7 +1022,7 @@ static const struct RfuPlayerData sUnionRoomPlayer_DummyRfu = {0};
 ALIGNED(4) static const u8 sAcceptedActivityIds_SingleBattle[]    = {ACTIVITY_BATTLE_SINGLE, 0xff};
 ALIGNED(4) static const u8 sAcceptedActivityIds_DoubleBattle[]    = {ACTIVITY_BATTLE_DOUBLE, 0xff};
 ALIGNED(4) static const u8 sAcceptedActivityIds_MultiBattle[]     = {ACTIVITY_BATTLE_MULTI, 0xff};
-ALIGNED(4) static const u8 sAcceptedActivityIds_Trade[]           = {ACTIVITY_TRADE, 0xff};
+ALIGNED(4) static const u8 sAcceptedActivityIds_Trade[]           = {0xff};
 ALIGNED(4) static const u8 sAcceptedActivityIds_PokemonJump[]     = {ACTIVITY_POKEMON_JUMP, 0xff};
 ALIGNED(4) static const u8 sAcceptedActivityIds_BerryCrush[]      = {ACTIVITY_BERRY_CRUSH, 0xff};
 ALIGNED(4) static const u8 sAcceptedActivityIds_BerryPicking[]    = {ACTIVITY_BERRY_PICK, 0xff};
@@ -1030,7 +1031,6 @@ ALIGNED(4) static const u8 sAcceptedActivityIds_WonderNews[]      = {ACTIVITY_WO
 ALIGNED(4) static const u8 sAcceptedActivityIds_Resume[]          = {
     IN_UNION_ROOM | ACTIVITY_NONE,
     IN_UNION_ROOM | ACTIVITY_BATTLE_SINGLE,
-    IN_UNION_ROOM | ACTIVITY_TRADE,
     IN_UNION_ROOM | ACTIVITY_CHAT,
     IN_UNION_ROOM | ACTIVITY_CARD,
     IN_UNION_ROOM | ACTIVITY_ACCEPT,
@@ -1044,7 +1044,6 @@ ALIGNED(4) static const u8 sAcceptedActivityIds_Unk11[]           = {
     ACTIVITY_BATTLE_SINGLE,
     ACTIVITY_BATTLE_DOUBLE,
     ACTIVITY_BATTLE_MULTI,
-    ACTIVITY_TRADE,
     ACTIVITY_POKEMON_JUMP,
     ACTIVITY_BERRY_CRUSH,
     ACTIVITY_BERRY_PICK,
@@ -1093,7 +1092,7 @@ static const u8 sLinkGroupToURoomActivity[NUM_LINK_GROUP_TYPES + 2] =
     [LINK_GROUP_SINGLE_BATTLE]     = ACTIVITY_BATTLE_SINGLE,
     [LINK_GROUP_DOUBLE_BATTLE]     = ACTIVITY_BATTLE_DOUBLE,
     [LINK_GROUP_MULTI_BATTLE]      = ACTIVITY_BATTLE_MULTI,
-    [LINK_GROUP_TRADE]             = ACTIVITY_TRADE,
+    [LINK_GROUP_TRADE]             = ACTIVITY_NONE,
     [LINK_GROUP_POKEMON_JUMP]      = ACTIVITY_POKEMON_JUMP,
     [LINK_GROUP_BERRY_CRUSH]       = ACTIVITY_BERRY_CRUSH,
     [LINK_GROUP_BERRY_PICKING]     = ACTIVITY_BERRY_PICK,

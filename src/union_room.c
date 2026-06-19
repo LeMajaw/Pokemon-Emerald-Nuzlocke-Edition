@@ -1660,6 +1660,12 @@ static void Task_StartActivity(u8 taskId)
 
     switch (gPlayerCurrActivity)
     {
+    case ACTIVITY_TRADE:
+    case ACTIVITY_TRADE | IN_UNION_ROOM:
+        DestroyTask(taskId);
+        gSpecialVar_Result = LINKUP_FAILED;
+        UnlockPlayerFieldControls();
+        return;
     case ACTIVITY_BATTLE_SINGLE | IN_UNION_ROOM:
     case ACTIVITY_ACCEPT | IN_UNION_ROOM:
         CleanupOverworldWindowsAndTilemaps();
@@ -2607,8 +2613,7 @@ static void Task_RunUnionRoom(u8 taskId)
                     UpdateGameData_SetActivity(ACTIVITY_PLYRTALK | IN_UNION_ROOM, 0, TRUE);
                     PlaySE(SE_PC_LOGIN);
                     StartScriptInteraction();
-                    StringCopy(gStringVar1, gSaveBlock2Ptr->playerName);
-                    uroom->state = UR_STATE_CHECK_TRADING_BOARD;
+                    ScheduleFieldMessageAndExit(sText_TradingDisabledNuzlocke);
                     break;
                 }
             }
@@ -3256,12 +3261,9 @@ static void ReceiveUnionRoomActivityPacket(struct WirelessLink_URoom *data)
 {
     if (gRecvCmds[1][1] != 0 && (gRecvCmds[1][0] & RFUCMD_MASK) == RFUCMD_SEND_PACKET)
     {
-        data->recvActivityRequest[0] = gRecvCmds[1][1];
         if (gRecvCmds[1][1] == (ACTIVITY_TRADE | IN_UNION_ROOM))
-        {
-            data->recvActivityRequest[1] = gRecvCmds[1][2];
-            data->recvActivityRequest[2] = gRecvCmds[1][3];
-        }
+            return;
+        data->recvActivityRequest[0] = gRecvCmds[1][1];
     }
 }
 

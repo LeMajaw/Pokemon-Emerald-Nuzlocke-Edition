@@ -258,21 +258,19 @@ CableClub_EventScript_UnusedWelcomeToCableClub::
 CableClub_EventScript_SelectCableClubRoom::
 	setvar VAR_0x8004, 0
 	goto_if_set FLAG_VISITED_MAUVILLE_CITY, CableClub_EventScript_CableClubUnlockedRecordCorner
-	multichoice 0, 0, MULTI_CABLE_CLUB_NO_RECORD_MIX, FALSE
+	multichoice 0, 0, MULTI_CABLE_CLUB_BATTLE_ONLY, FALSE
 	switch VAR_RESULT
-	case 0, CableClub_EventScript_TradeCenter
-	case 1, CableClub_EventScript_Colosseum
-	case 2, CableClub_EventScript_AbortLink
+	case 0, CableClub_EventScript_Colosseum
+	case 1, CableClub_EventScript_AbortLink
 	case MULTI_B_PRESSED, CableClub_EventScript_AbortLink
 	end
 
 CableClub_EventScript_CableClubUnlockedRecordCorner::
-	multichoice 0, 0, MULTI_CABLE_CLUB_WITH_RECORD_MIX, FALSE
+	multichoice 0, 0, MULTI_CABLE_CLUB_BATTLE_RECORD, FALSE
 	switch VAR_RESULT
-	case 0, CableClub_EventScript_TradeCenter
-	case 1, CableClub_EventScript_Colosseum
-	case 2, CableClub_EventScript_RecordCorner
-	case 3, CableClub_EventScript_AbortLink
+	case 0, CableClub_EventScript_Colosseum
+	case 1, CableClub_EventScript_RecordCorner
+	case 2, CableClub_EventScript_AbortLink
 	case MULTI_B_PRESSED, CableClub_EventScript_AbortLink
 	end
 
@@ -687,25 +685,21 @@ EventScript_BattleColosseum_4P_CancelSpotTrigger::
 	end
 
 EventScript_TradeCenter_Chair0::
-	setvar VAR_0x8005, 0
-	special PlayerEnteredTradeSeat
+	msgbox CableClub_Text_TradingDisabledNuzlocke, MSGBOX_DEFAULT
 	end
 
 EventScript_TradeCenter_Chair1::
-	setvar VAR_0x8005, 1
-	special PlayerEnteredTradeSeat
+	msgbox CableClub_Text_TradingDisabledNuzlocke, MSGBOX_DEFAULT
 	end
 
 /* Never used */
 EventScript_TradeCenter_Chair2::
-	setvar VAR_0x8005, 2
-	special PlayerEnteredTradeSeat
+	msgbox CableClub_Text_TradingDisabledNuzlocke, MSGBOX_DEFAULT
 	end
 
 /* Never used */
 EventScript_TradeCenter_Chair3::
-	setvar VAR_0x8005, 3
-	special PlayerEnteredTradeSeat
+	msgbox CableClub_Text_TradingDisabledNuzlocke, MSGBOX_DEFAULT
 	end
 
 EventScript_RecordCenter_Spot0::
@@ -766,7 +760,7 @@ BattleColosseum_2P_EventScript_Attendant::
 
 TradeCenter_EventScript_Attendant::
 	special Script_FacePlayer
-	msgbox TradeCenter_Text_TakeSeatStartTrade, MSGBOX_DEFAULT
+	msgbox CableClub_Text_TradingDisabledNuzlocke, MSGBOX_DEFAULT
 	special Script_ClearHeldMovement
 	closemessage
 	end
@@ -928,53 +922,45 @@ CableClub_EventScript_DirectCornerSelectService::
 	checkitem ITEM_POWDER_JAR
 	goto_if_eq VAR_RESULT, FALSE, CableClub_EventScript_DirectCornerNoBerry
 	goto_if_set FLAG_VISITED_MAUVILLE_CITY, CableClub_EventScript_DirectCornerSelectAllServices
-	multichoice 0, 0, MULTI_WIRELESS_NO_RECORD, FALSE
+	multichoice 0, 0, MULTI_WIRELESS_BATTLE_BERRY, FALSE
 	switch VAR_RESULT
-	case 0, CableClub_EventScript_WirelessTrade
-	case 1, CableClub_EventScript_WirelessBattleSelect
+	case 0, CableClub_EventScript_WirelessBattleSelect
+	case 1, CableClub_EventScript_WirelessBerryCrush
+	case 2, CableClub_EventScript_AbortLink
+	case MULTI_B_PRESSED, CableClub_EventScript_AbortLink
+	end
+
+CableClub_EventScript_DirectCornerSelectAllServices::
+	multichoice 0, 0, MULTI_WIRELESS_BATTLE_RECORD_BERRY, FALSE
+	switch VAR_RESULT
+	case 0, CableClub_EventScript_WirelessBattleSelect
+	case 1, CableClub_EventScript_WirelessRecordMix
 	case 2, CableClub_EventScript_WirelessBerryCrush
 	case 3, CableClub_EventScript_AbortLink
 	case MULTI_B_PRESSED, CableClub_EventScript_AbortLink
 	end
 
-CableClub_EventScript_DirectCornerSelectAllServices::
-	multichoice 0, 0, MULTI_WIRELESS_ALL_SERVICES, FALSE
-	switch VAR_RESULT
-	case 0, CableClub_EventScript_WirelessTrade
-	case 1, CableClub_EventScript_WirelessBattleSelect
-	case 2, CableClub_EventScript_WirelessRecordMix
-	case 3, CableClub_EventScript_WirelessBerryCrush
-	case 4, CableClub_EventScript_AbortLink
-	case MULTI_B_PRESSED, CableClub_EventScript_AbortLink
-	end
-
 CableClub_EventScript_DirectCornerNoBerry::
 	goto_if_set FLAG_VISITED_MAUVILLE_CITY, CableClub_EventScript_DirectCornerHasRecordMix
-	multichoice 0, 0, MULTI_WIRELESS_NO_RECORD_BERRY, FALSE
+	multichoice 0, 0, MULTI_WIRELESS_BATTLE_ONLY, FALSE
 	switch VAR_RESULT
-	case 0, CableClub_EventScript_WirelessTrade
-	case 1, CableClub_EventScript_WirelessBattleSelect
-	case 2, CableClub_EventScript_AbortLink
+	case 0, CableClub_EventScript_WirelessBattleSelect
+	case 1, CableClub_EventScript_AbortLink
 	case MULTI_B_PRESSED, CableClub_EventScript_AbortLink
 	end
 
 CableClub_EventScript_DirectCornerHasRecordMix::
-	multichoice 0, 0, MULTI_WIRELESS_NO_BERRY, FALSE
+	multichoice 0, 0, MULTI_WIRELESS_BATTLE_RECORD, FALSE
 	switch VAR_RESULT
-	case 0, CableClub_EventScript_WirelessTrade
-	case 1, CableClub_EventScript_WirelessBattleSelect
-	case 2, CableClub_EventScript_WirelessRecordMix
-	case 3, CableClub_EventScript_AbortLink
+	case 0, CableClub_EventScript_WirelessBattleSelect
+	case 1, CableClub_EventScript_WirelessRecordMix
+	case 2, CableClub_EventScript_AbortLink
 	case MULTI_B_PRESSED, CableClub_EventScript_AbortLink
 	end
 
 CableClub_EventScript_WirelessTrade::
-	msgbox CableClub_Text_TradePokemon, MSGBOX_YESNO
-	goto_if_eq VAR_RESULT, NO, CableClub_EventScript_AbortLink
-	call CableClub_EventScript_CheckPartyTradeRequirements
-	goto_if_eq VAR_RESULT, 0, CableClub_EventScript_AbortLink
-	setvar VAR_0x8004, LINK_GROUP_TRADE
-	goto CableClub_EventScript_SaveAndChooseLinkLeader
+	msgbox CableClub_Text_TradingDisabledNuzlocke, MSGBOX_DEFAULT
+	release
 	end
 
 CableClub_EventScript_WirelessBattleSelect::
@@ -1042,7 +1028,6 @@ CableClub_EventScript_SaveAndChooseLinkLeader::
 	call Common_EventScript_SaveGame
 	goto_if_eq VAR_RESULT, 0, CableClub_EventScript_AbortLink
 	switch VAR_0x8004
-	case LINK_GROUP_TRADE, CableClub_EventScript_ChooseLinkLeaderFrom2
 	case LINK_GROUP_SINGLE_BATTLE, CableClub_EventScript_ChooseLinkLeaderFrom2
 	case LINK_GROUP_DOUBLE_BATTLE, CableClub_EventScript_ChooseLinkLeaderFrom2
 	case LINK_GROUP_MULTI_BATTLE, CableClub_EventScript_ChooseLinkLeaderFrom4

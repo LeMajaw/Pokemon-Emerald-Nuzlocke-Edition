@@ -504,6 +504,47 @@ static const struct MenuAction MultichoiceList_LinkServicesNoRecordBerry[] =
     {gText_Exit},
 };
 
+static const struct MenuAction MultichoiceList_CableClubBattleOnly[] =
+{
+    {gText_Colosseum},
+    {gText_Exit},
+};
+
+static const struct MenuAction MultichoiceList_CableClubBattleRecord[] =
+{
+    {gText_Colosseum},
+    {gText_RecordCorner},
+    {gText_Exit},
+};
+
+static const struct MenuAction MultichoiceList_WirelessBattleOnly[] =
+{
+    {gText_Colosseum},
+    {gText_Exit},
+};
+
+static const struct MenuAction MultichoiceList_WirelessBattleBerry[] =
+{
+    {gText_Colosseum},
+    {gText_BerryCrush3},
+    {gText_Exit},
+};
+
+static const struct MenuAction MultichoiceList_WirelessBattleRecord[] =
+{
+    {gText_Colosseum},
+    {gText_RecordCorner},
+    {gText_Exit},
+};
+
+static const struct MenuAction MultichoiceList_WirelessBattleRecordBerry[] =
+{
+    {gText_Colosseum},
+    {gText_RecordCorner},
+    {gText_BerryCrush3},
+    {gText_Exit},
+};
+
 static const struct MenuAction MultichoiceList_WirelessMinigame[] =
 {
     {gText_PokemonJump},
@@ -898,6 +939,12 @@ static const struct MultichoiceListStruct sMultichoiceLists[] =
     [MULTI_SLATEPORT_TENT_RULES]       = MULTICHOICE(MultichoiceList_SlateportTentRules),
     [MULTI_FALLARBOR_TENT_RULES]       = MULTICHOICE(MultichoiceList_FallarborTentRules),
     [MULTI_TAG_MATCH_TYPE]             = MULTICHOICE(MultichoiceList_TagMatchType),
+    [MULTI_CABLE_CLUB_BATTLE_ONLY]     = MULTICHOICE(MultichoiceList_CableClubBattleOnly),
+    [MULTI_CABLE_CLUB_BATTLE_RECORD]   = MULTICHOICE(MultichoiceList_CableClubBattleRecord),
+    [MULTI_WIRELESS_BATTLE_ONLY]       = MULTICHOICE(MultichoiceList_WirelessBattleOnly),
+    [MULTI_WIRELESS_BATTLE_BERRY]      = MULTICHOICE(MultichoiceList_WirelessBattleBerry),
+    [MULTI_WIRELESS_BATTLE_RECORD]     = MULTICHOICE(MultichoiceList_WirelessBattleRecord),
+    [MULTI_WIRELESS_BATTLE_RECORD_BERRY] = MULTICHOICE(MultichoiceList_WirelessBattleRecordBerry),
 };
 
 const u8 *const gStdStrings[] =
@@ -941,7 +988,13 @@ static const u8 sLinkServicesMultichoiceIds[] =
     MULTI_CABLE_CLUB_WITH_RECORD_MIX,
     MULTI_WIRELESS_NO_BERRY,
     MULTI_WIRELESS_NO_RECORD,
-    MULTI_WIRELESS_ALL_SERVICES
+    MULTI_WIRELESS_ALL_SERVICES,
+    MULTI_CABLE_CLUB_BATTLE_ONLY,
+    MULTI_CABLE_CLUB_BATTLE_RECORD,
+    MULTI_WIRELESS_BATTLE_ONLY,
+    MULTI_WIRELESS_BATTLE_BERRY,
+    MULTI_WIRELESS_BATTLE_RECORD,
+    MULTI_WIRELESS_BATTLE_RECORD_BERRY
 };
 
 static const u8 *const sPCNameStrings[] =
@@ -996,6 +1049,41 @@ static const u8 *const sCableClubOptions_NoRecordMix[] =
 {
     CableClub_Text_TradeUsingLinkCable,
     CableClub_Text_BattleUsingLinkCable,
+    CableClub_Text_CancelSelectedItem,
+};
+static const u8 *const sCableClubOptions_BattleOnly[] =
+{
+    CableClub_Text_BattleUsingLinkCable,
+    CableClub_Text_CancelSelectedItem,
+};
+static const u8 *const sCableClubOptions_BattleRecord[] =
+{
+    CableClub_Text_BattleUsingLinkCable,
+    CableClub_Text_RecordCornerUsingLinkCable,
+    CableClub_Text_CancelSelectedItem,
+};
+static const u8 *const sWirelessOptions_BattleOnly[] =
+{
+    CableClub_Text_YouMayBattleHere,
+    CableClub_Text_CancelSelectedItem,
+};
+static const u8 *const sWirelessOptions_BattleBerry[] =
+{
+    CableClub_Text_YouMayBattleHere,
+    CableClub_Text_CanMakeBerryPowder,
+    CableClub_Text_CancelSelectedItem,
+};
+static const u8 *const sWirelessOptions_BattleRecord[] =
+{
+    CableClub_Text_YouMayBattleHere,
+    CableClub_Text_CanMixRecords,
+    CableClub_Text_CancelSelectedItem,
+};
+static const u8 *const sWirelessOptions_BattleRecordBerry[] =
+{
+    CableClub_Text_YouMayBattleHere,
+    CableClub_Text_CanMixRecords,
+    CableClub_Text_CanMakeBerryPowder,
     CableClub_Text_CancelSelectedItem,
 };
 static const u8 *const sWirelessOptions_NoRecordMixBerryCrush[] =

@@ -56,7 +56,7 @@ Impact: No passive leveling and no bred replacements — every Pokémon must be 
 
 #### Trade Restrictions
 
-Player-to-player trading is disabled (the Cable Club Trade Center refuses with an in-character message) to stop players from trading a dead Pokémon away or importing a fresh one. In-game NPC trades remain available; their Pokémon arrive already nicknamed (as in the base game) and otherwise behave like any other living Pokémon.
+Player-to-player trading is disabled (the Cable Club Trade Center refuses with an in-character message, wireless trade is removed from link service menus, and the Union Room trading board is closed) to stop players from trading a dead Pokémon away or importing a fresh one. In-game NPC trades remain available; their Pokémon arrive already nicknamed (as in the base game) and otherwise behave like any other living Pokémon.
 
 Impact: You can't launder deaths through the link cable, but scripted story trades still work. Because trading is off, trade-evolution Pokémon evolve with the **Link Stone** item instead (see Item Changes).
 
@@ -266,7 +266,7 @@ A concise summary of everything that differs from pret/pokeemerald in the Nuzloc
 - Maps with no wild-encounter table are not catch areas, so scripted static encounters on such maps (e.g. Sudowoodo) remain catchable — a deliberate, documented exception.
 - The legendary ban relies on battle legendary/roamer flags plus a fixed species list; any future non-flagged legendary encounter would need to be added to that list.
 - Day Care *deposits* are disabled, but retrieval of Pokémon already deposited in a pre-hack save is intentionally left working.
-- All player trading is disabled wholesale (the Trade Center is blocked), not just specific trades.
+- All player trading is disabled wholesale (the Trade Center, wireless trade service, and Union Room trading board are blocked), not just specific trades.
 - `make compare` will not match vanilla Emerald on this branch.
 
 ## Changelog

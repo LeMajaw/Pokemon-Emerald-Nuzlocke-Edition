@@ -427,8 +427,11 @@ Players may not exchange Pokémon.
 
 This restriction exists to prevent bypassing death.
 
-`Implementation note:` the Cable Club Trade Center is blocked entirely with an
-in-character message; the link-battle (Colosseum) service is unaffected.
+`Implementation note:` player-to-player trading is blocked at every normal link
+entry point: the Cable Club Trade Center refuses with an in-character message,
+wireless trade is removed from the Direct Corner service menus, and the Union
+Room trading board refuses registration or trade offers. The link-battle
+(Colosseum) service is unaffected.
 
 `Implementation note (trade evolutions):` because trading is disabled, Pokémon
 that normally evolve by trading instead evolve via the **Link Stone** item — used

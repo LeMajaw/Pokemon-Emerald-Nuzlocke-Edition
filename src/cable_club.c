@@ -1159,10 +1159,8 @@ static void Task_StartWirelessTrade(u8 taskId)
 
 void PlayerEnteredTradeSeat(void)
 {
-    if (gWirelessCommType != 0)
-        CreateTask_EnterCableClubSeat(Task_StartWirelessTrade);
-    else
-        CreateTask_EnterCableClubSeat(Task_StartWiredTrade);
+    // Nuzlocke: player-to-player trading is disabled.
+    ScriptContext_Enable();
 }
 
 static void UNUSED CreateTask_StartWiredTrade(void)
