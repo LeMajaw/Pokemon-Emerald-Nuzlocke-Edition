@@ -62,6 +62,10 @@
 #include "scanline_effect.h"
 #include "wild_encounter.h"
 #include "frontier_util.h"
+#include "decompress.h"
+#include "graphics.h"
+#include "sprite.h"
+#include "trig.h"
 #include "constants/abilities.h"
 #include "constants/event_objects.h"
 #include "constants/layouts.h"
@@ -170,6 +174,8 @@ static void CB1_OverworldLink(void);
 static void SetKeyInterceptCallback(u16 (*func)(u32));
 static void SetFieldVBlankCallback(void);
 static void FieldClearVBlankHBlankCallbacks(void);
+static void ResetOverworldClock(void);
+static void UpdateOverworldClock(void);
 static void TransitionMapMusic(void);
 static u8 GetAdjustedInitialTransitionFlags(struct InitialPlayerAvatarState *, u16, u8);
 static u8 GetAdjustedInitialDirection(struct InitialPlayerAvatarState *, u8, u16, u8);
@@ -208,6 +214,15 @@ EWRAM_DATA static struct InitialPlayerAvatarState sInitialPlayerAvatarState = {0
 EWRAM_DATA static u16 sAmbientCrySpecies = 0;
 EWRAM_DATA static bool8 sIsAmbientCryWaterMon = FALSE;
 EWRAM_DATA static u8 sHoursOverride = 0; // used to override apparent time of day hours
+// Overworld analog clock HUD: a miniature of the bedroom wall clock in the top-
+// left corner. Runtime-only; the sprites are wiped on every map load and lazily
+// recreated by UpdateOverworldClock on the next idle field frame.
+EWRAM_DATA static u8 sClockHudFaceSprite = 0;
+EWRAM_DATA static u8 sClockHudMinuteSprite = 0;
+EWRAM_DATA static u8 sClockHudHourSprite = 0;
+EWRAM_DATA static u8 sClockHudMinuteMatrix = 0;
+EWRAM_DATA static u8 sClockHudHourMatrix = 0;
+EWRAM_DATA static bool8 sClockHudCreated = FALSE;
 EWRAM_DATA struct LinkPlayerObjectEvent gLinkPlayerObjectEvents[4] = {0};
 
 static const struct WarpData sDummyWarpData =
@@ -1428,6 +1443,7 @@ static void InitOverworldBgs(void)
     SetBgTilemapBuffer(2, gOverworldTilemapBuffer_Bg2);
     SetBgTilemapBuffer(3, gOverworldTilemapBuffer_Bg3);
     InitStandardTextBoxWindows();
+    ResetOverworldClock();
 }
 
 void CleanupOverworldWindowsAndTilemaps(void)
@@ -1632,6 +1648,184 @@ u8 UpdateSpritePaletteWithTime(u8 paletteNum) {
     return paletteNum;
 }
 
+// --- Overworld analog clock HUD ----------------------------------------------
+// A small, miniature copy of the bedroom wall clock in the top-left corner: the
+// bedroom clock face (gender blue/pink) plus real rotating hour and minute hands,
+// driven by the same accelerated/virtual time the wall clock uses
+// (GetAcceleratedTimeOfDay). Built from sprites so it is independent of the map
+// BG layers; shown only on the live, idle field.
+
+static const u32 sClockHud_Gfx[] = INCGFX_U32("graphics/wallclock/hud_clock.png", ".4bpp.lz");
+
+#define CLOCK_HUD_GFX_TAG  0xC10C
+#define CLOCK_HUD_PAL_TAG  0xC10C
+#define CLOCK_HUD_CENTER_X 20
+#define CLOCK_HUD_CENTER_Y 20
+
+// Tile offsets of the three stacked 32x32 frames in the 32x96 sheet (16 tiles each).
+#define CLOCK_HUD_FRAME_FACE   0
+#define CLOCK_HUD_FRAME_MINUTE 16
+#define CLOCK_HUD_FRAME_HOUR   32
+
+static const struct CompressedSpriteSheet sClockHudSpriteSheet =
+{
+    sClockHud_Gfx, 32 * 96 / 2, CLOCK_HUD_GFX_TAG
+};
+
+static const struct OamData sOam_ClockHudFace =
+{
+    .shape = SPRITE_SHAPE(32x32),
+    .size = SPRITE_SIZE(32x32),
+    .priority = 0,
+};
+
+static const struct OamData sOam_ClockHudHand =
+{
+    .affineMode = ST_OAM_AFFINE_NORMAL,
+    .shape = SPRITE_SHAPE(32x32),
+    .size = SPRITE_SIZE(32x32),
+    .priority = 0,
+};
+
+static const union AnimCmd sAnim_ClockHudFace[]   = { ANIMCMD_FRAME(CLOCK_HUD_FRAME_FACE, 30),   ANIMCMD_END };
+static const union AnimCmd sAnim_ClockHudMinute[] = { ANIMCMD_FRAME(CLOCK_HUD_FRAME_MINUTE, 30), ANIMCMD_END };
+static const union AnimCmd sAnim_ClockHudHour[]   = { ANIMCMD_FRAME(CLOCK_HUD_FRAME_HOUR, 30),   ANIMCMD_END };
+static const union AnimCmd *const sAnims_ClockHudFace[]   = { sAnim_ClockHudFace };
+static const union AnimCmd *const sAnims_ClockHudMinute[] = { sAnim_ClockHudMinute };
+static const union AnimCmd *const sAnims_ClockHudHour[]   = { sAnim_ClockHudHour };
+
+static const struct SpriteTemplate sSpriteTemplate_ClockHudFace =
+{
+    .tileTag = CLOCK_HUD_GFX_TAG, .paletteTag = CLOCK_HUD_PAL_TAG, .oam = &sOam_ClockHudFace,
+    .anims = sAnims_ClockHudFace, .images = NULL,
+    .affineAnims = gDummySpriteAffineAnimTable, .callback = SpriteCallbackDummy,
+};
+static const struct SpriteTemplate sSpriteTemplate_ClockHudMinute =
+{
+    .tileTag = CLOCK_HUD_GFX_TAG, .paletteTag = CLOCK_HUD_PAL_TAG, .oam = &sOam_ClockHudHand,
+    .anims = sAnims_ClockHudMinute, .images = NULL,
+    .affineAnims = gDummySpriteAffineAnimTable, .callback = SpriteCallbackDummy,
+};
+static const struct SpriteTemplate sSpriteTemplate_ClockHudHour =
+{
+    .tileTag = CLOCK_HUD_GFX_TAG, .paletteTag = CLOCK_HUD_PAL_TAG, .oam = &sOam_ClockHudHand,
+    .anims = sAnims_ClockHudHour, .images = NULL,
+    .affineAnims = gDummySpriteAffineAnimTable, .callback = SpriteCallbackDummy,
+};
+
+static bool32 ShouldShowOverworldClock(void)
+{
+    // Hidden during battles and full-screen menus (callback2 changes), fades and
+    // map transitions, scripts/cutscenes and dialogue, locked controls (start
+    // menu, NPC interactions), and the map-name popup (it shares the top corner).
+    if (gMain.callback2 != CB2_Overworld)
+        return FALSE;
+    if (gPaletteFade.active)
+        return FALSE;
+    if (ArePlayerFieldControlsLocked())
+        return FALSE;
+    if (ScriptContext_IsEnabled())
+        return FALSE;
+    if (IsMapNamePopUpActive())
+        return FALSE;
+    return TRUE;
+}
+
+// Rotate a hand to point at a clock angle (0 = up/12 o'clock, growing clockwise).
+// The hands are authored at the HUD size, so this is rotation only.
+static void SetClockHudHandAngle(u8 matrixNum, u16 angle)
+{
+    s16 sin = Sin2(angle) / 16;
+    s16 cos = Cos2(angle) / 16;
+    SetOamMatrix(matrixNum, cos, sin, -sin, cos);
+}
+
+static void CreateOverworldClockSprites(void)
+{
+    struct SpritePalette palette =
+    {
+        (gSaveBlock2Ptr->playerGender == MALE) ? gWallClockMale_Pal : gWallClockFemale_Pal,
+        CLOCK_HUD_PAL_TAG
+    };
+    u8 face, minute, hour;
+
+    sClockHudMinuteMatrix = AllocOamMatrix();
+    sClockHudHourMatrix = AllocOamMatrix();
+    if (sClockHudMinuteMatrix == 0xFF || sClockHudHourMatrix == 0xFF)
+    {
+        if (sClockHudMinuteMatrix != 0xFF)
+            FreeOamMatrix(sClockHudMinuteMatrix);
+        if (sClockHudHourMatrix != 0xFF)
+            FreeOamMatrix(sClockHudHourMatrix);
+        return; // out of OAM matrices this frame; retry next frame
+    }
+
+    LoadCompressedSpriteSheet(&sClockHudSpriteSheet);
+    LoadSpritePalette(&palette);
+
+    face   = CreateSprite(&sSpriteTemplate_ClockHudFace,   CLOCK_HUD_CENTER_X, CLOCK_HUD_CENTER_Y, 2);
+    minute = CreateSprite(&sSpriteTemplate_ClockHudMinute, CLOCK_HUD_CENTER_X, CLOCK_HUD_CENTER_Y, 1);
+    hour   = CreateSprite(&sSpriteTemplate_ClockHudHour,   CLOCK_HUD_CENTER_X, CLOCK_HUD_CENTER_Y, 1);
+    if (face == MAX_SPRITES || minute == MAX_SPRITES || hour == MAX_SPRITES)
+    {
+        if (face != MAX_SPRITES)
+            DestroySprite(&gSprites[face]);
+        if (minute != MAX_SPRITES)
+            DestroySprite(&gSprites[minute]);
+        if (hour != MAX_SPRITES)
+            DestroySprite(&gSprites[hour]);
+        FreeOamMatrix(sClockHudMinuteMatrix);
+        FreeOamMatrix(sClockHudHourMatrix);
+        return;
+    }
+
+    sClockHudFaceSprite = face;
+    sClockHudMinuteSprite = minute;
+    gSprites[minute].oam.matrixNum = sClockHudMinuteMatrix;
+    sClockHudHourSprite = hour;
+    gSprites[hour].oam.matrixNum = sClockHudHourMatrix;
+    sClockHudCreated = TRUE;
+}
+
+// Called from the field's per-map init (which resets all sprites), so the HUD is
+// dropped and lazily recreated by UpdateOverworldClock on the next idle frame.
+static void ResetOverworldClock(void)
+{
+    sClockHudCreated = FALSE;
+}
+
+static void UpdateOverworldClock(void)
+{
+    s32 hours, minutes;
+
+    if (!ShouldShowOverworldClock())
+    {
+        if (sClockHudCreated)
+        {
+            gSprites[sClockHudFaceSprite].invisible = TRUE;
+            gSprites[sClockHudMinuteSprite].invisible = TRUE;
+            gSprites[sClockHudHourSprite].invisible = TRUE;
+        }
+        return;
+    }
+
+    if (!sClockHudCreated)
+    {
+        CreateOverworldClockSprites();
+        if (!sClockHudCreated)
+            return; // couldn't allocate this frame; retry next frame
+    }
+
+    // Same virtual/accelerated time and hand-angle math as the bedroom wall clock.
+    hours = GetAcceleratedTimeOfDay(&minutes);
+    SetClockHudHandAngle(sClockHudMinuteMatrix, minutes * 6);
+    SetClockHudHandAngle(sClockHudHourMatrix, (hours % 12) * 30 + (minutes / 10) * 5);
+
+    gSprites[sClockHudFaceSprite].invisible = FALSE;
+    gSprites[sClockHudMinuteSprite].invisible = FALSE;
+    gSprites[sClockHudHourSprite].invisible = FALSE;
+}
+
 static void OverworldBasic(void)
 {
     ScriptContext_RunScript();
@@ -1643,6 +1837,7 @@ static void OverworldBasic(void)
     UpdatePaletteFade();
     UpdateTilesetAnimations();
     DoScheduledBgTilemapCopiesToVram();
+    UpdateOverworldClock();
     // Every minute if no palette fade is active, update TOD blending as needed
     if (!gPaletteFade.active && --gTimeUpdateCounter <= 0) {
         struct TimeBlendSettings cachedBlend = currentTimeBlend;
