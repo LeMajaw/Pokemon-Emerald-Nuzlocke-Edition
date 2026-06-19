@@ -35,7 +35,7 @@ static void Task_ViewClock_Exit(u8 taskId);
 static u16 CalcNewMinHandAngle(u16 angle, u8 direction, u8 speed);
 static bool32 AdvanceClock(u8 taskId, u8 direction);
 static void UpdateClockPeriod(u8 taskId, u8 direction);
-static void InitClockWithRtc(u8 taskId);
+static void InitClockWithVirtualTime(u8 taskId);
 static void SpriteCB_MinuteHand(struct Sprite *sprite);
 static void SpriteCB_HourHand(struct Sprite *sprite);
 static void SpriteCB_PMIndicator(struct Sprite *sprite);
@@ -736,7 +736,7 @@ void CB2_ViewWallClock(void)
     LZ77UnCompVram(gWallClockView_Tilemap, (u16 *)BG_SCREEN_ADDR(7));
 
     taskId = CreateTask(Task_ViewClock_WaitFadeIn, 0);
-    InitClockWithRtc(taskId);
+    InitClockWithVirtualTime(taskId);
     if (gTasks[taskId].tPeriod == PERIOD_AM)
     {
         angle1 = 45;
@@ -882,7 +882,7 @@ static void Task_ViewClock_WaitFadeIn(u8 taskId)
 
 static void Task_ViewClock_HandleInput(u8 taskId)
 {
-    InitClockWithRtc(taskId);
+    InitClockWithVirtualTime(taskId);
     if (JOY_NEW(A_BUTTON | B_BUTTON))
         gTasks[taskId].func = Task_ViewClock_FadeOut;
 
@@ -1014,15 +1014,19 @@ static void UpdateClockPeriod(u8 taskId, u8 direction)
     }
 }
 
-static void InitClockWithRtc(u8 taskId)
+static void InitClockWithVirtualTime(u8 taskId)
 {
-    RtcCalcLocalTime();
-    gTasks[taskId].tHours = gLocalTime.hours;
-    gTasks[taskId].tMinutes = gLocalTime.minutes;
+    s32 hours, minutes;
+    // Post-intro wall clock displays the accelerated, playtime-based day/night
+    // time (shared with the overworld tint and encounters), not the real RTC.
+    // The intro clock-setting flow (CB2_StartWallClock) still uses the RTC.
+    hours = GetAcceleratedTimeOfDay(&minutes);
+    gTasks[taskId].tHours = hours;
+    gTasks[taskId].tMinutes = minutes;
     gTasks[taskId].tMinuteHandAngle = gTasks[taskId].tMinutes * 6;
     gTasks[taskId].tHourHandAngle = (gTasks[taskId].tHours % 12) * 30 + (gTasks[taskId].tMinutes / 10) * 5;
 
-    if (gLocalTime.hours < 12)
+    if (hours < 12)
         gTasks[taskId].tPeriod = PERIOD_AM;
     else
         gTasks[taskId].tPeriod = PERIOD_PM;
