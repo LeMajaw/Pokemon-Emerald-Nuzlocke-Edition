@@ -1,6 +1,6 @@
 # Nuzlocke Specification
 
-Version: 1.5.0
+Version: 1.5.1
 
 Note on versioning: the Version number above tracks revisions of this specification document only. It is independent of the hack's release version, which is recorded in the README changelog. A higher spec version does not imply a newer build.
 
@@ -13,6 +13,8 @@ Revision 1.3.1 is a documentation-audit pass. It adds no new rules; it makes exi
 Revision 1.4.0 documents three behaviors that are now verified in-game after a regression-fix pass. Two are restored features that had been lost during branch migration: the optional Dupes Clause (Rule 16) and indoor Running Shoes (Implementation Notes). The third is the Game Over presentation contract — the immediate-loss and memorial-save paths must share a single display flow and present the same screen on a clean background (Rule 5). The Dupes Clause is no longer listed as out of scope anywhere in this document.
 
 Revision 1.5.0 extends the anti-reset auto-save to catch-area consumption: a wild encounter that newly uses up its catch area now persists that state at the next safe overworld step, so a failed or unlucky first encounter cannot be soft-reset away (Rule 16, Rule 17). It also records the Link Stone as the single-player replacement for trade evolutions now that trading is disabled (Rule 9).
+
+Revision 1.5.1 clarifies Nuzlocke death handling for special battle contexts. Link battles, rental/temporary facility battles, Battle Tents, e-Reader trainer battles, Trainer Hill, and Secret Base battles do not count as deaths. Steven-style partner battles count only the player's own selected Pokemon slots. Deferred Battle Frontier deaths now also reset Momentum when applied.
 
 `Implementation note:` bullets describe how a requirement is satisfied in the shipped build. They are part of the implementation contract and must not be silently broken; they do not relax or override the requirements above them.
 
@@ -472,13 +474,19 @@ Battle Factory does NOT count because it uses rental Pokémon.
 
 Pokémon that faint in Battle Factory are not sent to the Graveyard, and the player's real party is not affected.
 
+Battle Tent formats do NOT count. They are side/facility challenge content, and
+their temporary or restricted battle setup must not create permanent Nuzlocke
+deaths or deferred Frontier death records.
+
 `Implementation note:` because a frontier challenge heals and restores the full
 party between rounds and at the end, deaths must not be applied mid-challenge.
 Faints in the six own-Pokémon facilities are recorded during the challenge
 (identified by personality value, robust to per-round reordering) and applied to
 the Graveyard from the lobby script after the challenge ends — once the full
 party is restored and before it is healed. The applied deaths are saved
-synchronously at that point. Battle Factory faints are never recorded.
+synchronously at that point. Battle Factory and Battle Tent faints are never
+recorded. Deferred deaths reset Momentum at the same point they are moved to the
+Graveyard.
 
 `Implementation note (persistence / reset window):` the recorded faints live
 only in runtime memory until the end-of-challenge lobby script applies and saves
@@ -603,6 +611,8 @@ Count as death:
 
 * Trainer battles
 * Wild battles
+* Steven-style in-game partner battles, but only for the player's own selected
+  party slots. Borrowed partner Pokémon do not count.
 * Battle Frontier facilities that use the player's own Pokémon:
 
   * Battle Tower
@@ -616,6 +626,10 @@ Do not count as death:
 
 * Player link battles
 * Battle Factory battles, because Battle Factory uses rental Pokémon
+* Battle Tent battles
+* e-Reader trainer battles
+* Trainer Hill battles
+* Secret Base battles
 
 If additional special battle modes exist:
 
@@ -632,11 +646,19 @@ and Battle Factory battles:
 * Safari Zone battles — the player does not battle with their own Pokémon, so no
   death can occur. (Safari battles still consume catch areas; see Rule 16.)
 * Recorded battles — playback, not a live encounter.
+* Battle Tent battles — side/facility challenge content with temporary or
+  restricted setup.
+* e-Reader trainer battles — special event/test battle flow that saves and
+  restores the party.
+* Trainer Hill battles — side/facility challenge content.
+* Secret Base battles — fun/simulated/player-created content.
 * Wally's tutorial catch on Route 102 — a scripted capture before the challenge
   begins.
 * Professor Birch's first-battle tutorial — occurs before Poké Balls exist.
 
 The six own-Pokémon Battle Frontier facilities are handled separately (Rule 11).
+Battle Factory and Battle Tent faints are not recorded for deferred Frontier
+death application.
 
 ---
 
