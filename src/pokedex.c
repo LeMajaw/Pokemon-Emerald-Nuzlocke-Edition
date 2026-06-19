@@ -1329,8 +1329,10 @@ static const u8 sSearchMovementMap_ShiftHoennDex[SEARCH_COUNT][4] =
 
 static const struct SearchOptionText sDexModeOptions[] =
 {
-    [DEX_MODE_HOENN]    = {gText_DexHoennDescription, gText_DexHoennTitle},
-    [DEX_MODE_NATIONAL] = {gText_DexNatDescription,   gText_DexNatTitle},
+    // Hoenn Dex removed: both toggle positions show and select National, so the
+    // SEARCH "MODE" row is an inert "NATIONAL" label and cannot switch to Hoenn.
+    [DEX_MODE_HOENN]    = {gText_DexNatDescription, gText_DexNatTitle},
+    [DEX_MODE_NATIONAL] = {gText_DexNatDescription, gText_DexNatTitle},
     {},
 };
 
@@ -1400,7 +1402,8 @@ static const struct SearchOptionText sDexSearchTypeOptions[NUMBER_OF_MON_TYPES +
     {},
 };
 
-static const u8 sPokedexModes[] = {DEX_MODE_HOENN, DEX_MODE_NATIONAL};
+// Hoenn Dex removed: every MODE-toggle position resolves to National.
+static const u8 sPokedexModes[] = {DEX_MODE_NATIONAL, DEX_MODE_NATIONAL};
 static const u8 sOrderOptions[] =
 {
     ORDER_NUMERICAL,
@@ -1617,9 +1620,8 @@ void CB2_OpenPokedex(void)
         sPokedexView = AllocZeroed(sizeof(struct PokedexView));
         ResetPokedexView(sPokedexView);
         CreateTask(Task_OpenPokedexMainPage, 0);
-        sPokedexView->dexMode = gSaveBlock2Ptr->pokedex.mode;
-        if (!IsNationalPokedexEnabled())
-            sPokedexView->dexMode = DEX_MODE_HOENN;
+        sPokedexView->dexMode = DEX_MODE_NATIONAL;
+        gSaveBlock2Ptr->pokedex.mode = DEX_MODE_NATIONAL;
         sPokedexView->dexOrder = gSaveBlock2Ptr->pokedex.order;
         sPokedexView->selectedPokemon = sLastSelectedPokemon;
         sPokedexView->pokeBallRotation = sPokeBallRotation;
@@ -2186,6 +2188,11 @@ static void CreatePokedexList(u8 dexMode, u8 order)
 
     sPokedexView->pokemonListCount = 0;
 
+    // Hoenn Dex removed: this hack ships a single National Dex. Force National
+    // listing regardless of any stored/legacy mode so the Hoenn view never
+    // renders (the in-dex mode toggle is also pinned to National).
+    dexMode = DEX_MODE_NATIONAL;
+
     switch (dexMode)
     {
     default:
@@ -2194,16 +2201,8 @@ static void CreatePokedexList(u8 dexMode, u8 order)
         temp_isHoennDex = TRUE;
         break;
     case DEX_MODE_NATIONAL:
-        if (IsNationalPokedexEnabled())
-        {
-            temp_dexCount = NATIONAL_DEX_COUNT;
-            temp_isHoennDex = FALSE;
-        }
-        else
-        {
-            temp_dexCount = HOENN_DEX_COUNT;
-            temp_isHoennDex = TRUE;
-        }
+        temp_dexCount = NATIONAL_DEX_COUNT;
+        temp_isHoennDex = FALSE;
         break;
     }
 
@@ -2224,21 +2223,19 @@ static void CreatePokedexList(u8 dexMode, u8 order)
         }
         else
         {
-            s16 r5, r10;
-            for (i = 0, r5 = 0, r10 = 0; i < temp_dexCount; i++)
+            // National Dex expansion:
+            // Keep the National Dex in true National number order (#001..NATIONAL_DEX_COUNT),
+            // even when earlier species are still unseen. This makes Gen 1/2/3 additions
+            // occupy their expected National Dex positions instead of hiding everything
+            // before the first seen National species.
+            for (i = 0; i < temp_dexCount; i++)
             {
                 temp_dexNum = i + 1;
-                if (GetSetPokedexFlag(temp_dexNum, FLAG_GET_SEEN))
-                    r10 = 1;
-                if (r10)
-                {
-                    sPokedexView->pokedexList[r5].dexNum = temp_dexNum;
-                    sPokedexView->pokedexList[r5].seen = GetSetPokedexFlag(temp_dexNum, FLAG_GET_SEEN);
-                    sPokedexView->pokedexList[r5].owned = GetSetPokedexFlag(temp_dexNum, FLAG_GET_CAUGHT);
-                    if (sPokedexView->pokedexList[r5].seen)
-                        sPokedexView->pokemonListCount = r5 + 1;
-                    r5++;
-                }
+                sPokedexView->pokedexList[i].dexNum = temp_dexNum;
+                sPokedexView->pokedexList[i].seen = GetSetPokedexFlag(temp_dexNum, FLAG_GET_SEEN);
+                sPokedexView->pokedexList[i].owned = GetSetPokedexFlag(temp_dexNum, FLAG_GET_CAUGHT);
+                if (sPokedexView->pokedexList[i].seen)
+                    sPokedexView->pokemonListCount = i + 1;
             }
         }
         break;

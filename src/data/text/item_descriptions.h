@@ -374,6 +374,11 @@ static const u8 sMoonStoneDesc[] = _(
     "species of POKéMON\n"
     "evolve.");
 
+static const u8 sLinkStoneDesc[] = _(
+    "Evolves POKéMON\n"
+    "that would evolve\n"
+    "by trading.");
+
 static const u8 sFireStoneDesc[] = _(
     "Makes certain\n"
     "species of POKéMON\n"

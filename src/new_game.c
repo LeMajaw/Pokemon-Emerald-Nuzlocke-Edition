@@ -165,6 +165,10 @@ void NewGameInitData(void)
     PlayTimeCounter_Reset();
     ClearPokedexFlags();
     InitEventData();
+    // This hack ships a single National Dex from the start. InitEventData clears
+    // all flags/vars, so enable National *after* it (EnableNationalPokedex sets
+    // VAR_NATIONAL_DEX and FLAG_SYS_NATIONAL_DEX, both of which it would wipe).
+    EnableNationalPokedex();
     ClearTVShowData();
     ResetGabbyAndTy();
     ClearSecretBases();

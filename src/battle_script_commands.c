@@ -3309,6 +3309,19 @@ static void Cmd_jumpiftype(void)
         gBattlescriptCurrInstr += 7;
 }
 
+// Difficulty: TRUE when the mon that landed this KO is a player mon above the
+// recommended cap. Such an over-cap sweeper still earns its own (reduced) EXP,
+// but must not passively train the bench, so non-participants get no party base
+// from this KO. gBattlerAttacker is the KO-er on the normal faint path
+// (getexp BS_TARGET); a non-attack faint (recoil, status, self-KO) leaves it
+// enemy-side, so this returns FALSE and party EXP is shared normally.
+static bool32 IsOverCapSweeperKO(void)
+{
+    if (GetBattlerSide(gBattlerAttacker) != B_SIDE_PLAYER)
+        return FALSE;
+    return (Difficulty_GetOverCapDelta(&gPlayerParty[gBattlerPartyIndexes[gBattlerAttacker]]) > 0);
+}
+
 static void Cmd_getexp(void)
 {
     u16 item;
@@ -3454,7 +3467,11 @@ static void Cmd_getexp(void)
                     // no longer adds a second share - that share is now universal.
                     if (gBattleStruct->sentInPokes & 1)
                         gBattleMoveDamage = *exp;
-                    gBattleMoveDamage += gExpShareExp;
+                    // Difficulty: an over-cap sweeper does not passively train the
+                    // bench. Participants always get the base; a non-participant
+                    // gets it only if the KO-er was not an over-cap sweeper.
+                    if ((gBattleStruct->sentInPokes & 1) || !IsOverCapSweeperKO())
+                        gBattleMoveDamage += gExpShareExp;
 
                     if (holdEffect == HOLD_EFFECT_LUCKY_EGG)
                         gBattleMoveDamage = (gBattleMoveDamage * 150) / 100;

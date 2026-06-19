@@ -5261,6 +5261,34 @@ void ItemUseCB_EvolutionStone(u8 taskId, TaskFunc task)
     }
 }
 
+// Nuzlocke: Link Stone callback. Triggers the trade evolution the selected
+// Pokemon would get by trading. EVO_MODE_TRADE covers plain trade evos and
+// held-item trade evos (the latter consumes the held item, exactly like a real
+// trade). Consumed on a successful evolution; otherwise shows the standard
+// "won't have any effect" message and the item is kept.
+void ItemUseCB_LinkStone(u8 taskId, TaskFunc task)
+{
+    struct Pokemon *mon = &gPlayerParty[gPartyMenu.slotId];
+    u16 targetSpecies = GetEvolutionTargetSpecies(mon, EVO_MODE_TRADE, ITEM_NONE);
+
+    PlaySE(SE_SELECT);
+    if (targetSpecies != SPECIES_NONE)
+    {
+        RemoveBagItem(gSpecialVar_ItemId, 1);
+        gCB2_AfterEvolution = gPartyMenu.exitCallback;
+        FreePartyPointers();
+        BeginEvolutionScene(mon, targetSpecies, TRUE, gPartyMenu.slotId);
+        DestroyTask(taskId);
+    }
+    else
+    {
+        gPartyMenuUseExitCallback = FALSE;
+        DisplayPartyMenuMessage(gText_WontHaveEffect, TRUE);
+        ScheduleBgCopyTilemapToVram(2);
+        gTasks[taskId].func = task;
+    }
+}
+
 u8 GetItemEffectType(u16 item)
 {
     const u8 *itemEffect;

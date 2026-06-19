@@ -46,6 +46,15 @@ static u8 sFrontierDeadCount;
 // runs from a lobby script and saves synchronously there.
 static bool8 sPendingDeathAutoSave;
 
+// Rule 16 anti-reset: set when a wild encounter newly consumes its catch area
+// (caught, defeated, fled, ran, or ended without a capture). Consumed at the
+// first safe overworld frame like the death save, so the player cannot soft-
+// reset to retry the area. Only a *new* consume sets it (see
+// ConsumeCurrentCatchArea), so a blocked ball in an already-used area does not
+// re-trigger a save. A death save outranks it (its SAVE_NORMAL persists the
+// area flag too), so the two never double-save.
+static bool8 sPendingCatchAreaSave;
+
 // Nuzlocke core implementation. See docs/NuzlockeSpecification.md.
 //
 // The Graveyard occupies the last two PC boxes. Living storage uses the
@@ -228,8 +237,13 @@ static void ConsumeCurrentCatchArea(void)
 {
     s32 index = GetCatchAreaIndex(gMapHeader.regionMapSectionId);
 
-    if (index >= 0)
+    // Only a genuine first-time consume queues the anti-reset save; re-entering
+    // an already-used area (e.g. a blocked ball throw) must not save again.
+    if (index >= 0 && !FlagGet(FLAG_NUZLOCKE_CATCH_AREA_BASE + index))
+    {
         FlagSet(FLAG_NUZLOCKE_CATCH_AREA_BASE + index);
+        sPendingCatchAreaSave = TRUE;
+    }
 }
 
 // Rule 16: TRUE for battles whose end consumes the current catch area - i.e.
@@ -603,16 +617,29 @@ void Nuzlocke_OnBattleEnd(void)
 // Anti-reset auto-save consume point. Called by ProcessPlayerFieldInput on
 // every frame the overworld is idle (no script running, no menu open, field
 // controls unlocked) - the same dispatcher vanilla uses for field poison and
-// egg hatching. Queues the auto-save script once after a battle whose deaths
-// reached the Graveyard; by then any whiteout recovery, respawn and trainer
-// defeat speech have already finished, so the save captures the final state.
+// egg hatching. Queues the auto-save script once after a battle that reached
+// the Graveyard or newly consumed a catch area; by then any whiteout recovery,
+// respawn and trainer defeat speech have finished, so the save captures the
+// final state. (Name kept for the death path; it now serves both triggers.)
 bool32 Nuzlocke_TryQueueDeathAutoSave(void)
 {
-    if (!sPendingDeathAutoSave)
-        return FALSE;
-    sPendingDeathAutoSave = FALSE;
-    ScriptContext_SetupScript(EventScript_NuzlockeDeathAutoSave);
-    return TRUE;
+    // A death save outranks an area save: its SAVE_NORMAL writes the whole save
+    // (including the just-consumed area flag), so one save covers both. Clearing
+    // both flags here also prevents a redundant area save on the next frame.
+    if (sPendingDeathAutoSave)
+    {
+        sPendingDeathAutoSave = FALSE;
+        sPendingCatchAreaSave = FALSE;
+        ScriptContext_SetupScript(EventScript_NuzlockeDeathAutoSave);
+        return TRUE;
+    }
+    if (sPendingCatchAreaSave)
+    {
+        sPendingCatchAreaSave = FALSE;
+        ScriptContext_SetupScript(EventScript_NuzlockeAreaAutoSave);
+        return TRUE;
+    }
+    return FALSE;
 }
 
 // Script special for EventScript_NuzlockeDeathAutoSave: writes a full save
@@ -742,6 +769,7 @@ void Nuzlocke_SaveMemorialAndReturnToTitle(void)
     // started from the title screen without a console reset would otherwise
     // inherit it and auto-save over the old file at the first idle frame.
     sPendingDeathAutoSave = FALSE;
+    sPendingCatchAreaSave = FALSE;
     // Keep the memorial's reloaded map intact (see Nuzlocke_DoDeathAutoSave).
     SaveMapView();
     TrySavingData(SAVE_NORMAL);

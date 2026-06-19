@@ -38,7 +38,7 @@ Impact: You don't permanently lose valuable held items to death, but you also ca
 
 #### First Encounter Per Catch Area
 
-Once the challenge begins, only the **first valid wild encounter** in each catch area may be caught. Routes, caves, water routes, underwater maps, and the Safari Zone are each one area (multi-floor dungeons count as a single shared area). Any finished wild battle — caught, fainted, fled, or run from — consumes that area. After that, throwing a Poké Ball there is blocked with a message, and the ball is not consumed. Catch-area state persists across save/load.
+Once the challenge begins, only the **first valid wild encounter** in each catch area may be caught. Routes, caves, water routes, underwater maps, and the Safari Zone are each one area (multi-floor dungeons count as a single shared area). Any finished wild battle — caught, fainted, fled, or run from — consumes that area. After that, throwing a Poké Ball there is blocked with a message, and the ball is not consumed. Catch-area state persists across save/load, and the moment an area is newly used up the game auto-saves at the next safe overworld step (see Anti-Reset Auto-Save), so you can't soft-reset to retry a failed or unlucky encounter.
 
 Impact: The classic "one catch per area" rule is enforced for you; you can't accidentally (or deliberately) catch a second Pokémon in an area.
 
@@ -58,7 +58,7 @@ Impact: No passive leveling and no bred replacements — every Pokémon must be 
 
 Player-to-player trading is disabled (the Cable Club Trade Center refuses with an in-character message) to stop players from trading a dead Pokémon away or importing a fresh one. In-game NPC trades remain available; their Pokémon arrive already nicknamed (as in the base game) and otherwise behave like any other living Pokémon.
 
-Impact: You can't launder deaths through the link cable, but scripted story trades still work.
+Impact: You can't launder deaths through the link cable, but scripted story trades still work. Because trading is off, trade-evolution Pokémon evolve with the **Link Stone** item instead (see Item Changes).
 
 #### Optional Dupes Clause
 
@@ -116,6 +116,18 @@ Normal healing items never restore a Pokémon that is at 0 HP. Combined with per
 
 Impact: Healing only ever applies to living Pokémon — a corpse stays a corpse.
 
+#### Link Stone (Trade Evolutions)
+
+Because trading is disabled, a new **Link Stone** item stands in for it. Used on a Pokémon that would normally evolve by trading, it triggers that exact evolution and is consumed — covering both plain trade evolutions (Kadabra, Machoke, Graveler, Haunter) and held-item trade evolutions (e.g. Onix or Scyther holding a Metal Coat, Seadra holding a Dragon Scale, Clamperl holding a Deep Sea Tooth/Scale), which still require the appropriate held item just as a real trade would. It sells at the Lilycove Department Store (3F).
+
+Impact: Trade-only evolutions remain obtainable in a single-player Nuzlocke without ever touching the link cable.
+
+#### Premier Ball Bulk Bonus
+
+Buying Poké Balls in bulk now grants one free **Premier Ball per ten purchased** (20 → 2, 30 → 3, and so on) instead of a single ball for buying ten. The bonus applies to any standard purchasable ball (Poké, Great, Ultra, and the specialty balls sold in marts) — Master Ball and Safari Ball are excluded. The free balls respect Bag space.
+
+Impact: Stocking up is a little more rewarding, and the bonus is no longer limited to the basic Poké Ball.
+
 ### Overworld Changes
 
 #### Nuzlocke Activation & Announcement
@@ -138,9 +150,9 @@ Impact: A wipe with nothing left is a true end-state — the run is over and the
 
 #### Anti-Reset Auto-Save
 
-After any battle in which a Pokémon dies, the game automatically performs a full save at the first safe overworld moment (before any new battle can start), writing the death, party compaction, item transfer, and Graveyard to the save.
+After any battle in which a Pokémon dies, the game automatically performs a full save at the first safe overworld moment (before any new battle can start), writing the death, party compaction, item transfer, and Graveyard to the save. The same save also fires when a wild encounter newly consumes its catch area without a death (caught, defeated, fled, or run from), with a neutral on-screen message. A death save takes priority when both happen at once, and re-entering an already-used area never triggers another save.
 
-Impact: You can't soft-reset to undo a death — by the time you regain control, it's already saved.
+Impact: You can't soft-reset to undo a death or to retry an area's first encounter — by the time you regain control, it's already saved.
 
 ### Quality of Life
 
@@ -202,7 +214,7 @@ Impact: Less grinding; benched Pokémon and Nuzlocke replacements train alongsid
 
 #### Over-Cap EXP & Momentum
 
-A Pokémon **above** the recommended level earns reduced EXP (80% at +1 level over, down to 10% at +5 or more) and gets **no** passive bench EXP — it must actually fight to gain anything. **Momentum** lets it earn some of that back: winning meaningful battles (real trainers and bosses near your level — *not* weak wild Pokémon) builds Momentum, which lifts a deeply over-leveled Pokémon's rate back up toward — but never past — 50%. Momentum is spent when you reset your resources: a Pokémon Center heal wipes it, and HP/PP items (−50%) or status cures (−25%) reduce it; boxing or losing the Pokémon clears it.
+A Pokémon **above** the recommended level earns reduced EXP (80% at +1 level over, down to 10% at +5 or more) and gets **no** passive bench EXP — it must actually fight to gain anything. On top of that, if the Pokémon that **lands the KO** is itself over the cap, the rest of the party receives **no** passive EXP from that defeat — an over-leveled sweeper can't quietly carry the whole team. **Momentum** lets the over-leveled Pokémon earn some of its own reduction back: winning meaningful battles (real trainers and bosses near your level — *not* weak wild Pokémon) builds Momentum, which lifts a deeply over-leveled Pokémon's rate back up toward — but never past — 50%. Momentum is spent when you reset your resources: a Pokémon Center heal wipes it, and HP/PP items (−50%) or status cures (−25%) reduce it; boxing or losing the Pokémon clears it.
 
 Impact: You can keep leveling an over-leveled favorite, but only by accepting risk and pushing through real battles — never by farming Route 101 or healing after every fight. The optimal play is to keep adventuring.
 
@@ -219,11 +231,12 @@ A concise summary of everything that differs from pret/pokeemerald in the Nuzloc
 - Legendary Pokémon cannot be caught (all ball types, including Master Ball and Safari Ball).
 - The challenge activates when the rival gives Poké Balls, with an on-screen announcement.
 - Day Care deposits and egg breeding are disabled; gift/event eggs still hatch (and force nicknames).
-- Player-to-player trading is disabled; NPC trades and link battles remain.
+- Player-to-player trading is disabled; NPC trades and link battles remain. Trade-evolution Pokémon use the new Link Stone item (Lilycove Dept. Store 3F) instead.
 - Link-battle and Battle Factory faints never count; the six own-Pokémon Frontier facilities do.
 - Revive/Max Revive removed from shops, hidden items, and field pickups (replaced with Super/Max Potion); revival effects and Sacred Ash are neutralized; fainted Pokémon can't be healed.
 - Whiteout auto-recovers a living boxed Pokémon; with none left anywhere, the run ends in a memorial Game Over save.
-- A full auto-save fires after any death to prevent soft-reset abuse.
+- A full auto-save fires after any death — and after a catch area's first encounter is used up — to prevent soft-reset abuse.
+- Buying balls in bulk awards one Premier Ball per ten purchased (any standard purchasable ball; Master/Safari excluded).
 - PC wallpapers: living boxes rotate Forest/City/Savanna/Desert; "Simple" is Graveyard-only.
 - New-game default text speed is Fast.
 - Running Shoes work indoors (other running restrictions still apply; outdoor running unchanged).

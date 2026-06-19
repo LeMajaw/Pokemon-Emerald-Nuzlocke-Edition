@@ -4538,4 +4538,17 @@ const struct Item gItems[] =
         .type = ITEM_USE_BAG_MENU,
         .fieldUseFunc = ItemUseOutOfBattle_CannotUse,
     },
+
+    // Nuzlocke: replaces trading for trade evolutions. Used on a trade-evo
+    // Pokemon (incl. held-item trade evos) to trigger that evolution.
+    [ITEM_LINK_STONE] =
+    {
+        .name = _("LINK STONE"),
+        .itemId = ITEM_LINK_STONE,
+        .price = 3000,
+        .description = sLinkStoneDesc,
+        .pocket = POCKET_ITEMS,
+        .type = ITEM_USE_PARTY_MENU,
+        .fieldUseFunc = ItemUseOutOfBattle_LinkStone,
+    },
 };

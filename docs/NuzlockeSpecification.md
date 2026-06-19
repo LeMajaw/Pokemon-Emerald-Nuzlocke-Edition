@@ -1,6 +1,6 @@
 # Nuzlocke Specification
 
-Version: 1.4.0
+Version: 1.5.0
 
 Note on versioning: the Version number above tracks revisions of this specification document only. It is independent of the hack's release version, which is recorded in the README changelog. A higher spec version does not imply a newer build.
 
@@ -11,6 +11,8 @@ Revision 1.3.0 reconciles the specification with the shipped implementation. It 
 Revision 1.3.1 is a documentation-audit pass. It adds no new rules; it makes existing behavior explicit for long-term maintenance: the PC box-count dependency behind the 13/14 numbering (Rule 3.1), Graveyard held-item retrieval when the Bag is full (Rule 4), the field-faint vs battle-death distinction in whiteout and run-loss (Rule 5), the runtime-only lifetime of recorded Battle Frontier faints (Rule 11), precise reserved-flag ranges with a post-merge re-verification warning (Technical Requirements), the default nature of the living-box wallpaper mapping (PC Box Backgrounds), a warning against repurposing the catch-rule activation flag (Rule 16), and it reframes the Investigation Phase section as historical.
 
 Revision 1.4.0 documents three behaviors that are now verified in-game after a regression-fix pass. Two are restored features that had been lost during branch migration: the optional Dupes Clause (Rule 16) and indoor Running Shoes (Implementation Notes). The third is the Game Over presentation contract — the immediate-loss and memorial-save paths must share a single display flow and present the same screen on a clean background (Rule 5). The Dupes Clause is no longer listed as out of scope anywhere in this document.
+
+Revision 1.5.0 extends the anti-reset auto-save to catch-area consumption: a wild encounter that newly uses up its catch area now persists that state at the next safe overworld step, so a failed or unlucky first encounter cannot be soft-reset away (Rule 16, Rule 17). It also records the Link Stone as the single-player replacement for trade evolutions now that trading is disabled (Rule 9).
 
 `Implementation note:` bullets describe how a requirement is satisfied in the shipped build. They are part of the implementation contract and must not be silently broken; they do not relax or override the requirements above them.
 
@@ -428,6 +430,14 @@ This restriction exists to prevent bypassing death.
 `Implementation note:` the Cable Club Trade Center is blocked entirely with an
 in-character message; the link-battle (Colosseum) service is unaffected.
 
+`Implementation note (trade evolutions):` because trading is disabled, Pokémon
+that normally evolve by trading instead evolve via the **Link Stone** item — used
+from the party menu, consumed on use, and sold at the Lilycove Department Store
+(3F). It reproduces both plain trade evolutions and held-item trade evolutions
+(the latter still require the appropriate held item, exactly as a real trade
+would). This keeps trade-only evolutions obtainable in single-player. See the
+README "Item Changes" section.
+
 ---
 
 # Rule 10: Link Battles
@@ -676,6 +686,8 @@ A catch area becomes consumed if the first valid encounter:
 After an area is consumed:
 
 * Poké Balls cannot be used to catch Pokémon in that catch area.
+* The consumption is persisted by the Rule 17 anti-reset auto-save at the next
+  safe overworld step, so the used-up area cannot be soft-reset away.
 
 If the player attempts to use a Poké Ball in a consumed catch area:
 
@@ -815,15 +827,25 @@ Required:
 * The save must capture the final post-battle state: party compaction, held-item
   transfer, the dead Pokémon in the Graveyard, and any whiteout recovery.
 * The save must never corrupt the file and must keep the reloaded map intact.
+* The same persistence applies when a wild encounter **newly consumes its catch
+  area without a death** (Rule 16) — caught, defeated, fled, or run from. The
+  area-consumed state must be saved before the player can retry the area, so a
+  failed or unlucky first encounter cannot be soft-reset away.
 
 `Implementation note:` a battle whose deaths reach the Graveyard sets a
 runtime-only pending flag. The first safe overworld frame (no script, no menu,
 field controls unlocked) consumes it by running an auto-save script that performs
 a full normal save — checked before any approaching-trainer battle can start. The
 map-view snapshot is refreshed first so the continue screen reloads correctly.
-Battle Frontier deaths do not use this flag; they are saved synchronously from
-the lobby script (see Rule 11, including its reset-window note). A pending
-auto-save is cleared on Game Over so it cannot leak into a fresh New Game.
+A separate runtime-only flag is set when a catch area is **newly** consumed and
+drives the same first-safe-frame save through a sibling script with a neutral
+message (no Graveyard wording). A death save takes priority when both are pending
+in the same battle — its full save already persists the area flag — and
+re-entering an already-consumed area (e.g. a blocked Poké Ball throw) does not
+queue another save. Battle Frontier deaths do not use either flag; they are saved
+synchronously from the lobby script (see Rule 11, including its reset-window
+note). Both pending flags are cleared on Game Over so neither can leak into a
+fresh New Game.
 
 ---
 

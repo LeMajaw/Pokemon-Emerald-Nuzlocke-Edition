@@ -1,6 +1,6 @@
 # Difficulty Specification
 
-Version: 1.0.0
+Version: 1.1.0
 
 This document is the source of truth for this hack's **difficulty systems**: the
 Recommended Level, modern party-wide EXP, Over-Cap EXP restriction, and the
@@ -114,6 +114,25 @@ For an over-cap Pokémon (`delta > 0`):
 
 *Example:* cap 31, a Lv34 participant (delta 3) earns 40% of what it normally
 would (before Momentum).
+
+### 3a. Over-Cap KO suppresses party-share
+An over-leveled Pokémon that does the work must not passively train the rest of
+the team. When the Pokémon that **lands the KO** is itself over-cap:
+
+- **non-participants receive 0** passive party EXP from that KO (the party base is
+  withheld), and
+- the over-cap KO-er still earns its own reduced EXP per Section 3, and any
+  **under-cap co-participant** still earns its normal participant share.
+
+If the KO-er is at or under the cap, party-wide EXP behaves exactly as in
+Section 2. The KO-er is identified from the move user on the normal faint path
+(`gBattlerAttacker`); a foe that faints to recoil, status, or its own action has
+no player KO-er, so the suppression does not apply and EXP is shared normally.
+
+*Example:* cap 31, a Lv40 starter KOs the foe while a Lv20 catch and four benched
+mons are alive. The starter earns its reduced participant EXP; the bench earns
+**nothing**. Had a Lv31 mon landed the KO instead, the whole party would share
+normally.
 
 ---
 

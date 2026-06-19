@@ -401,6 +401,9 @@ const u32 *const gItemIconTable[ITEMS_COUNT + 1][2] =
     // Emerald-only key items
     [ITEM_MAGMA_EMBLEM] = {gItemIcon_MagmaEmblem, gItemIconPalette_MagmaEmblem},
     [ITEM_OLD_SEA_MAP] = {gItemIcon_OldSeaMap, gItemIconPalette_OldSeaMap},
+    // Nuzlocke trade-evolution item. Reuses the Moon Stone icon as placeholder
+    // art; swap for a dedicated Link Stone sprite if/when one is added.
+    [ITEM_LINK_STONE] = {gItemIcon_MoonStone, gItemIconPalette_MoonStone},
     // Return to field arrow
     [ITEMS_COUNT] = {gItemIcon_ReturnToFieldArrow, gItemIconPalette_ReturnToFieldArrow},
 };

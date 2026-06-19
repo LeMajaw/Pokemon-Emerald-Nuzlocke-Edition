@@ -1159,11 +1159,22 @@ static void Task_ReturnToItemListAfterItemPurchase(u8 taskId)
     {
         PlaySE(SE_SELECT);
 
-        // Purchasing 10+ Poke Balls gets the player a Premier Ball
-        if (tItemId == ITEM_POKE_BALL && tItemCount >= 10 && AddBagItem(ITEM_PREMIER_BALL, 1) == TRUE)
-            BuyMenuDisplayMessage(taskId, gText_ThrowInPremierBall, BuyMenuReturnToItemList);
-        else
-            BuyMenuReturnToItemList(taskId);
+        // Buying eligible balls in bulk earns one Premier Ball per 10 bought
+        // (10 -> 1, 20 -> 2, ...). Eligible = any purchasable Poke Ball pocket
+        // item except Master/Safari (and Premier itself). AddBagItem is all-or-
+        // nothing, so bag capacity is respected with no partial/duplicate gifts.
+        {
+            u32 numPremier = (GetItemPocket(tItemId) == POCKET_POKE_BALLS
+                           && tItemId != ITEM_MASTER_BALL
+                           && tItemId != ITEM_SAFARI_BALL
+                           && tItemId != ITEM_PREMIER_BALL)
+                            ? tItemCount / 10 : 0;
+
+            if (numPremier != 0 && AddBagItem(ITEM_PREMIER_BALL, numPremier) == TRUE)
+                BuyMenuDisplayMessage(taskId, gText_ThrowInPremierBall, BuyMenuReturnToItemList);
+            else
+                BuyMenuReturnToItemList(taskId);
+        }
     }
 }
 

@@ -947,6 +947,14 @@ void ItemUseOutOfBattle_EvolutionStone(u8 taskId)
     SetUpItemUseCallback(taskId);
 }
 
+// Nuzlocke: the Link Stone stands in for trading. It runs a dedicated party
+// callback that triggers the selected Pokemon's trade evolution.
+void ItemUseOutOfBattle_LinkStone(u8 taskId)
+{
+    gItemUseCB = ItemUseCB_LinkStone;
+    SetUpItemUseCallback(taskId);
+}
+
 void ItemUseInBattle_PokeBall(u8 taskId)
 {
     const u8 *blockMsg = NULL;

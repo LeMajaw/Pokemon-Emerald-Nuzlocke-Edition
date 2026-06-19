@@ -34,3 +34,22 @@ EventScript_NuzlockeDeathAutoSave::
 gText_NuzlockeDeathAutoSave:
 	.string "The fallen rest in the GRAVEYARD.\n"
 	.string "Saving… don't turn off the power.$"
+
+@ Same anti-reset save, fired when a wild encounter newly uses up its catch
+@ area without a death (caught, defeated, fled, ran). Neutral message; reuses
+@ the death save's special (a full SAVE_NORMAL).
+EventScript_NuzlockeAreaAutoSave::
+	lockall
+	message gText_NuzlockeAreaAutoSave
+	waitmessage
+	special Nuzlocke_DoDeathAutoSave
+	playse SE_SAVE
+	waitse
+	delay 30
+	closemessage
+	releaseall
+	end
+
+gText_NuzlockeAreaAutoSave:
+	.string "This area's encounter is over.\n"
+	.string "Saving… don't turn off the power.$"

@@ -42,6 +42,7 @@ void Nuzlocke_ShowGameOverTitle(void);
 bool32 Nuzlocke_TryQueueDeathAutoSave(void); // hook in ProcessPlayerFieldInput
 void Nuzlocke_DoDeathAutoSave(void);         // script special: TrySavingData
 extern const u8 EventScript_NuzlockeDeathAutoSave[];
+extern const u8 EventScript_NuzlockeAreaAutoSave[];
 
 // Game Over field script (shown when a run is lost).
 extern const u8 EventScript_NuzlockeGameOver[];
