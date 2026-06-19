@@ -392,6 +392,9 @@ const u32 gMonFrontPic_Latios[] = INCGFX_U32("graphics/pokemon/latios/anim_front
 const u32 gMonFrontPic_Jirachi[] = INCGFX_U32("graphics/pokemon/jirachi/anim_front.png", ".4bpp.lz");
 const u32 gMonFrontPic_Deoxys[] = INCGFX_U32("graphics/pokemon/deoxys/anim_front.png", ".4bpp.lz");
 const u32 gMonFrontPic_Chimecho[] = INCGFX_U32("graphics/pokemon/chimecho/anim_front.png", ".4bpp.lz");
+const u32 gMonFrontPic_Leafeon[] = INCGFX_U32("graphics/pokemon/leafeon/anim_front.png", ".4bpp.lz");
+const u32 gMonFrontPic_Glaceon[] = INCGFX_U32("graphics/pokemon/glaceon/anim_front.png", ".4bpp.lz");
+const u32 gMonFrontPic_Sylveon[] = INCGFX_U32("graphics/pokemon/sylveon/anim_front.png", ".4bpp.lz");
 
 const u32 gMonFrontPic_Egg[] = INCGFX_U32("graphics/pokemon/egg/anim_front.png", ".4bpp.lz");
 

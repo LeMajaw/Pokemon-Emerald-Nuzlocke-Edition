@@ -2712,6 +2712,27 @@ const u32 gMonShinyPalette_Chimecho[] = INCGFX_U32("graphics/pokemon/chimecho/sh
 const u8 gMonIcon_Chimecho[] = INCGFX_U8("graphics/pokemon/chimecho/icon.png", ".4bpp");
 const u8 gMonFootprint_Chimecho[] = INCGFX_U8("graphics/pokemon/chimecho/footprint.png", ".1bpp");
 
+const u32 gMonStillFrontPic_Leafeon[] = INCGFX_U32("graphics/pokemon/leafeon/front.png", ".4bpp.lz");
+const u32 gMonPalette_Leafeon[] = INCGFX_U32("graphics/pokemon/leafeon/normal.pal", ".gbapal.lz");
+const u32 gMonBackPic_Leafeon[] = INCGFX_U32("graphics/pokemon/leafeon/back.png", ".4bpp.lz");
+const u32 gMonShinyPalette_Leafeon[] = INCGFX_U32("graphics/pokemon/leafeon/shiny.pal", ".gbapal.lz");
+const u8 gMonIcon_Leafeon[] = INCGFX_U8("graphics/pokemon/leafeon/icon.png", ".4bpp");
+const u8 gMonFootprint_Leafeon[] = INCGFX_U8("graphics/pokemon/leafeon/footprint.png", ".1bpp");
+
+const u32 gMonStillFrontPic_Glaceon[] = INCGFX_U32("graphics/pokemon/glaceon/front.png", ".4bpp.lz");
+const u32 gMonPalette_Glaceon[] = INCGFX_U32("graphics/pokemon/glaceon/normal.pal", ".gbapal.lz");
+const u32 gMonBackPic_Glaceon[] = INCGFX_U32("graphics/pokemon/glaceon/back.png", ".4bpp.lz");
+const u32 gMonShinyPalette_Glaceon[] = INCGFX_U32("graphics/pokemon/glaceon/shiny.pal", ".gbapal.lz");
+const u8 gMonIcon_Glaceon[] = INCGFX_U8("graphics/pokemon/glaceon/icon.png", ".4bpp");
+const u8 gMonFootprint_Glaceon[] = INCGFX_U8("graphics/pokemon/glaceon/footprint.png", ".1bpp");
+
+const u32 gMonStillFrontPic_Sylveon[] = INCGFX_U32("graphics/pokemon/sylveon/front.png", ".4bpp.lz");
+const u32 gMonPalette_Sylveon[] = INCGFX_U32("graphics/pokemon/sylveon/normal.pal", ".gbapal.lz");
+const u32 gMonBackPic_Sylveon[] = INCGFX_U32("graphics/pokemon/sylveon/back.png", ".4bpp.lz");
+const u32 gMonShinyPalette_Sylveon[] = INCGFX_U32("graphics/pokemon/sylveon/shiny.pal", ".gbapal.lz");
+const u8 gMonIcon_Sylveon[] = INCGFX_U8("graphics/pokemon/sylveon/icon.png", ".4bpp");
+const u8 gMonFootprint_Sylveon[] = INCGFX_U8("graphics/pokemon/sylveon/footprint.png", ".1bpp");
+
 const u32 gMonStillFrontPic_Egg[] = INCGFX_U32("graphics/pokemon/egg/front.png", ".4bpp.lz");
 const u32 gMonPalette_Egg[] = INCGFX_U32("graphics/pokemon/egg/normal.pal", ".gbapal.lz");
 
