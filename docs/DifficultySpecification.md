@@ -1,6 +1,6 @@
 # Difficulty Specification
 
-Version: 1.1.0
+Version: 1.2.0
 
 This document is the source of truth for this hack's **difficulty systems**: the
 Recommended Level, modern party-wide EXP, Over-Cap EXP restriction, and the
@@ -60,45 +60,54 @@ over by 2 (delta 2).
 ---
 
 ## 2. Modern Party-Wide EXP
-EXP is distributed to **every living, non-egg party Pokémon**, not just the ones
-sent out. Implemented by generalizing the gen-3 Exp Share split in `Cmd_getexp`:
+EXP is awarded to **every living, non-egg party Pokémon**, not just the ones sent
+out, using the modern (Gen VII+/IX) level-scaled formula. Each receiver's amount
+is computed **independently** in `Cmd_getexp` (`CalcModernExp`), so EXP is never
+split between participants:
 
-- `calculatedExp = faintedMon.expYield × faintedMon.level / 7` (vanilla formula).
-- **Participant bonus** (`*exp`) = `calculatedExp / 2 / (number of participants)` —
-  added only to Pokémon that were sent out against the fainted foe.
-- **Party base** (`gExpShareExp`) = `calculatedExp / 2 / (number of living non-egg party mons)` —
-  added to **every** living, non-egg party Pokémon.
-- A participant therefore receives *bonus + base*; a benched living mon receives
-  *base* only.
-- Vanilla boosts are preserved and applied on top, in order: **Lucky Egg ×1.5**,
+```
+EXP = (b × L) / (5 × s) × ((2L + 10)^2.5 / (L + Lp + 10)^2.5) + 1
+```
+
+- `b` = fainted mon's base EXP yield; `L` = fainted mon's level; `Lp` = the
+  receiver's **own** level.
+- `s = 1` for a **participant** (full share); `s = 2` for a **passive** party
+  member (half share). There is **no** division by the number of participants —
+  each participant receives its own full amount (Gen VI+ behaviour).
+- The `Lp` term is the catch-up: a lower-level member gains **more** than a same-
+  level member from the same KO; an over-level member gains less.
+- `^2.5` is computed in integers as `x² × Sqrt(x)` (GBA BIOS `Sqrt`), with a u64
+  intermediate so the product cannot overflow.
+- Vanilla boosts are preserved on top, applied in order: **Lucky Egg ×1.5**,
   **trainer battle ×1.5**, **traded/outsider ×1.5**.
 
-**Conservation:** when no over-cap Pokémon are present, the total EXP handed out
-still equals `calculatedExp` — identical to the base game, just spread across the
-whole party instead of only the participants. (Over-cap reductions in Section 3
-can lower the total, since reduced Pokémon are not compensated.)
-
-**Eligibility / exclusions** (match the base game where relevant):
+**Eligibility / exclusions:**
 - Eggs and fainted (0 HP) Pokémon receive nothing.
 - Max-level Pokémon receive nothing.
-- A participant that **fainted before the foe did** receives nothing — this is
-  the base-game rule (a 0-HP mon is excluded), preserved deliberately. (In a
-  counting Nuzlocke battle such a mon is dead and headed to the Graveyard
-  anyway.)
+- A participant that **fainted before the foe did** receives nothing (0 HP is
+  excluded; in a counting Nuzlocke battle it is dead and headed to the Graveyard).
+- A passive bench mon receives nothing when the KO-er is an **over-cap sweeper**
+  (Section 3a), so an overtrained Pokémon cannot passively carry the team.
 
-**The Exp Share item is now redundant.** Because the party base is universal, a
-held Exp Share is a harmless no-op (it never adds a *second* share). The item,
-its constant, and its hold effect remain defined; nothing was removed.
+**The Exp Share item is redundant and removed from obtainability.** Party-wide EXP
+is always on, so a held Exp Share is a no-op. As of v1.2.0 it is no longer given by
+the Devon Corp reward (now the Link Stone) or the Lottery Corner; its constant,
+data, and hold effect remain defined but are unobtainable in normal play.
 
 ---
 
 ## 3. Over-Cap EXP Restriction
-For an over-cap Pokémon (`delta > 0`):
+The over-cap cap is applied **last** — after modern level scaling (Section 2) and
+the Lucky Egg / trainer / traded multipliers — so the catch-up term can never push
+an over-cap Pokémon past the cap. For an over-cap Pokémon (`delta > 0`):
 
-- **Did not participate** → **0 EXP** (no passive party EXP). To keep leveling an
-  over-cap Pokémon, it must be sent into battle and exposed to danger.
+- **Did not participate (passive)** → the **same** reduced table rate (below) is
+  applied to its passive share, but Momentum is **never** read or built for it:
+  passive EXP can neither gain, refresh, nor preserve Momentum. (A passive mon
+  still gets **0** when the KO-er is an over-cap sweeper — Section 3a.)
 - **Participated** → reduced EXP using the base table, indexed by `delta`
-  (`sOverCapBaseRate[]`):
+  (`sOverCapBaseRate[]`), and Momentum may lift sub-50% brackets (participants
+  only):
 
 | Levels over cap (`delta`) | Base EXP rate |
 |---|---|

@@ -3322,14 +3322,33 @@ static bool32 IsOverCapSweeperKO(void)
     return (Difficulty_GetOverCapDelta(&gPlayerParty[gBattlerPartyIndexes[gBattlerAttacker]]) > 0);
 }
 
+// Modern (Gen VII+/IX) level-scaled EXP for ONE receiver, returning the base
+// amount BEFORE the Lucky Egg/trainer/traded multipliers and BEFORE the
+// over-cap cap:
+//   exp = (b * L) / (5 * s) * ((2L+10)^2.5 / (L+Lp+10)^2.5) + 1
+// b = base yield, L = defeated level, Lp = receiver level, s = 1 for a
+// participant and 2 for a passive party member (so passive members get a half
+// share and low-level members catch up). ^2.5 is x*x*Sqrt(x); a u64 holds the
+// (~3.4e9 peak) product so it cannot overflow u32. No EXP is split between
+// participants - each participant receives its own full amount.
+static u32 CalcModernExp(u8 defeatedLevel, u8 receiverLevel, u32 baseYield, u32 s)
+{
+    u32 num = 2 * defeatedLevel + 10;
+    u32 den = defeatedLevel + receiverLevel + 10;
+    u32 base = (baseYield * defeatedLevel) / (5 * s);
+    u64 e = (u64)base * num * num * Sqrt(num);
+
+    e = e / (den * den);
+    e = e / Sqrt(den);
+    return (u32)e + 1;
+}
+
 static void Cmd_getexp(void)
 {
     u16 item;
     s32 i; // also used as stringId
     u8 holdEffect;
     s32 sentIn;
-    s32 viaExpShare = 0;
-    u16 *exp = &gBattleStruct->expValue;
 
     gBattlerFainted = GetBattlerForBattleScript(gBattlescriptCurrInstr[1]);
     sentIn = gSentPokesToOpponent[(gBattlerFainted & 2) >> 1];
@@ -3354,46 +3373,11 @@ static void Cmd_getexp(void)
             gBattleStruct->givenExpMons |= gBitTable[gBattlerPartyIndexes[gBattlerFainted]];
         }
         break;
-    case 1: // calculate experience points to redistribute
+    case 1: // grant Momentum for this KO; modern EXP is computed per mon in state 2
         {
-            u16 calculatedExp;
-            s32 viaSentIn;
-
-            // Difficulty: modern party-wide EXP. Every living, non-egg party mon
-            // shares, so viaExpShare counts the whole living party (not just
-            // Exp Share *item* holders). The vanilla split below then hands out a
-            // participant bonus (*exp) plus a party base (gExpShareExp) to all.
-            // The item's per-mon bonus is removed in state 2 to avoid double-counting.
-            for (viaSentIn = 0, i = 0; i < PARTY_SIZE; i++)
-            {
-                if (GetMonData(&gPlayerParty[i], MON_DATA_SPECIES) == SPECIES_NONE
-                 || GetMonData(&gPlayerParty[i], MON_DATA_HP) == 0
-                 || GetMonData(&gPlayerParty[i], MON_DATA_IS_EGG))
-                    continue;
-                viaExpShare++; // party-wide: every living, non-egg mon shares
-                if (gBitTable[i] & sentIn)
-                    viaSentIn++;
-            }
-
-            calculatedExp = gSpeciesInfo[gBattleMons[gBattlerFainted].species].expYield * gBattleMons[gBattlerFainted].level / 7;
-
-            if (viaExpShare) // always true here: the whole living party shares
-            {
-                *exp = SAFE_DIV(calculatedExp / 2, viaSentIn);
-                if (*exp == 0)
-                    *exp = 1;
-
-                gExpShareExp = calculatedExp / 2 / viaExpShare;
-                if (gExpShareExp == 0)
-                    gExpShareExp = 1;
-            }
-            else
-            {
-                *exp = SAFE_DIV(calculatedExp, viaSentIn);
-                if (*exp == 0)
-                    *exp = 1;
-                gExpShareExp = 0;
-            }
+            // Modern level-scaled EXP is computed per receiver in state 2 (it
+            // depends on each receiver's own level), so nothing is pre-split
+            // here. State 1 only grants Momentum for this KO.
 
             // Difficulty: grant Momentum to over-cap participants for this KO.
             // Importance scales the gain: wild < trainer < gym leader < E4/Champion.
@@ -3462,16 +3446,20 @@ static void Cmd_getexp(void)
                 gBattleMoveDamage = 0;
                 if (GetMonData(&gPlayerParty[gBattleStruct->expGetterMonId], MON_DATA_HP))
                 {
-                    // Participant bonus (*exp) plus the party-wide base (gExpShareExp,
-                    // added exactly once for every living mon). The Exp Share item
-                    // no longer adds a second share - that share is now universal.
-                    if (gBattleStruct->sentInPokes & 1)
-                        gBattleMoveDamage = *exp;
-                    // Difficulty: an over-cap sweeper does not passively train the
-                    // bench. Participants always get the base; a non-participant
-                    // gets it only if the KO-er was not an over-cap sweeper.
-                    if ((gBattleStruct->sentInPokes & 1) || !IsOverCapSweeperKO())
-                        gBattleMoveDamage += gExpShareExp;
+                    // Modern level-scaled EXP, computed per receiver: participants
+                    // get the full formula (s = 1); passive party members get the
+                    // s = 2 half-share, scaled by their own level so low-level
+                    // members catch up. EXP is never split between participants.
+                    u32 participated = (gBattleStruct->sentInPokes & 1);
+
+                    // An over-cap sweeper does not passively train the bench: a
+                    // non-participant earns nothing when the KO-er is over-cap.
+                    if (participated || !IsOverCapSweeperKO())
+                        gBattleMoveDamage = CalcModernExp(
+                            gBattleMons[gBattlerFainted].level,
+                            GetMonData(&gPlayerParty[gBattleStruct->expGetterMonId], MON_DATA_LEVEL),
+                            gSpeciesInfo[gBattleMons[gBattlerFainted].species].expYield,
+                            participated ? 1 : 2);
 
                     if (holdEffect == HOLD_EFFECT_LUCKY_EGG)
                         gBattleMoveDamage = (gBattleMoveDamage * 150) / 100;
@@ -3496,9 +3484,10 @@ static void Cmd_getexp(void)
                         i = STRINGID_EMPTYSTRING4;
                     }
 
-                    // Difficulty: over-cap scaling. At/under cap is unchanged;
-                    // over-cap participants get a reduced amount; over-cap
-                    // non-participants get 0 (no passive party EXP).
+                    // Difficulty: over-cap cap, applied AFTER modern scaling and
+                    // the multipliers. At/under cap is unchanged; over-cap mons
+                    // (participant or passive) get the reduced table rate, and
+                    // only participants can have it lifted by Momentum.
                     gBattleMoveDamage = Difficulty_ScaleExp(gBattleMoveDamage, &gPlayerParty[gBattleStruct->expGetterMonId], (gBattleStruct->sentInPokes & 1));
                 }
 
@@ -3532,7 +3521,8 @@ static void Cmd_getexp(void)
                 }
                 else
                 {
-                    // Dead mon, or an over-cap non-participant: no EXP, no message.
+                    // No EXP, no message: a fainted mon, or a bench mon denied by
+                    // an over-cap sweeper (gBattleMoveDamage stayed 0).
                     gBattleStruct->sentInPokes >>= 1;
                     gBattleScripting.getexpState = 5;
                 }

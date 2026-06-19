@@ -208,13 +208,13 @@ Impact: You always know how strong you "should" be, and the game gently keeps yo
 
 #### Modern Party-Wide EXP
 
-Every living party Pokémon earns EXP from your victories — the Pokémon that fought get the full share, the bench gets a passive share. (A held Exp Share is no longer needed.)
+Every living party Pokémon earns EXP from your victories, using a modern level-scaled formula (Gen VII+/IX style). Pokémon that fought get the full share; the bench gets a half (passive) share — and because each Pokémon's EXP scales to its **own** level, a low-level benchwarmer catches up faster than a high-level one. EXP is no longer split between participants, so a bigger team is never a penalty. (The Exp Share item is gone — the system is always on; see Item Changes.)
 
 Impact: Less grinding; benched Pokémon and Nuzlocke replacements train alongside your active team.
 
 #### Over-Cap EXP & Momentum
 
-A Pokémon **above** the recommended level earns reduced EXP (80% at +1 level over, down to 10% at +5 or more) and gets **no** passive bench EXP — it must actually fight to gain anything. On top of that, if the Pokémon that **lands the KO** is itself over the cap, the rest of the party receives **no** passive EXP from that defeat — an over-leveled sweeper can't quietly carry the whole team. **Momentum** lets the over-leveled Pokémon earn some of its own reduction back: winning meaningful battles (real trainers and bosses near your level — *not* weak wild Pokémon) builds Momentum, which lifts a deeply over-leveled Pokémon's rate back up toward — but never past — 50%. Momentum is spent when you reset your resources: a Pokémon Center heal wipes it, and HP/PP items (−50%) or status cures (−25%) reduce it; boxing or losing the Pokémon clears it.
+A Pokémon **above** the recommended level earns reduced EXP (80% at +1 level over, down to 10% at +5 or more) — and its passive bench EXP is reduced by that same table (and never builds Momentum). On top of that, if the Pokémon that **lands the KO** is itself over the cap, the rest of the party receives **no** passive EXP from that defeat — an over-leveled sweeper can't quietly carry the whole team. **Momentum** lets the over-leveled Pokémon earn some of its own reduction back: winning meaningful battles (real trainers and bosses near your level — *not* weak wild Pokémon) builds Momentum, which lifts a deeply over-leveled Pokémon's rate back up toward — but never past — 50%. Momentum is spent when you reset your resources: a Pokémon Center heal wipes it, and HP/PP items (−50%) or status cures (−25%) reduce it; boxing or losing the Pokémon clears it.
 
 Impact: You can keep leveling an over-leveled favorite, but only by accepting risk and pushing through real battles — never by farming Route 101 or healing after every fight. The optimal play is to keep adventuring.
 

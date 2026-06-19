@@ -208,15 +208,20 @@ u32 Difficulty_ScaleExp(u32 baseExp, struct Pokemon *mon, bool32 participated)
 
     delta = Difficulty_GetOverCapDelta(mon);
     if (delta == 0)
-        return baseExp;      // at/under cap: unchanged (passive party EXP applies)
-    if (!participated)
-        return 0;            // over-cap: no passive party EXP
+        return baseExp;      // at/under cap: unchanged (full party EXP applies)
 
     if (delta > 5)
         delta = 5;
     baseRate = sOverCapBaseRate[delta];
 
-    if (baseRate >= MOMENTUM_RATE_CEIL)
+    // Over-cap passive (non-participant) EXP is reduced by the SAME table, but
+    // never reads or builds Momentum - Momentum is earned only by fighting, so
+    // passive bench EXP can neither gain nor refresh it.
+    if (!participated)
+    {
+        finalRate = baseRate;
+    }
+    else if (baseRate >= MOMENTUM_RATE_CEIL)
     {
         finalRate = baseRate;   // bracket already >= 50%: Momentum has no effect
     }
@@ -229,6 +234,6 @@ u32 Difficulty_ScaleExp(u32 baseExp, struct Pokemon *mon, bool32 participated)
 
     exp = baseExp * finalRate / 100;
     if (exp == 0 && baseExp != 0)
-        exp = 1;                // never literally zero for a participant
+        exp = 1;                // never literally zero for an eligible receiver
     return exp;
 }
