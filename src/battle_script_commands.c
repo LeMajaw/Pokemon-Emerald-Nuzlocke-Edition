@@ -3419,8 +3419,9 @@ static void Cmd_getexp(void)
                 holdEffect = GetItemHoldEffect(item);
 
             // Difficulty: party-wide EXP - every living, non-egg mon is eligible.
-            // Eggs and max-level mons skip here; over-cap non-participants are
-            // filtered out after scaling (they receive no passive party EXP).
+            // Eggs, max-level mons, and over-cap non-participants are filtered
+            // out here, before EXP is computed: an over-cap Pokemon receives no
+            // passive party EXP and may only gain EXP by participating in battle.
             if (GetMonData(&gPlayerParty[gBattleStruct->expGetterMonId], MON_DATA_IS_EGG))
             {
                 *(&gBattleStruct->sentInPokes) >>= 1;
@@ -3428,6 +3429,17 @@ static void Cmd_getexp(void)
                 gBattleMoveDamage = 0; // used for exp
             }
             else if (GetMonData(&gPlayerParty[gBattleStruct->expGetterMonId], MON_DATA_LEVEL) == MAX_LEVEL)
+            {
+                *(&gBattleStruct->sentInPokes) >>= 1;
+                gBattleScripting.getexpState = 5;
+                gBattleMoveDamage = 0; // used for exp
+            }
+            // Difficulty: an over-cap Pokemon that did NOT participate is excluded
+            // from passive Party EXP Share - it gets nothing here. Over-cap mons
+            // that DID participate fall through to the normal path and keep their
+            // reduced participant EXP and Momentum from Difficulty_ScaleExp below.
+            else if (!(gBattleStruct->sentInPokes & 1)
+                  && Difficulty_GetOverCapDelta(&gPlayerParty[gBattleStruct->expGetterMonId]) > 0)
             {
                 *(&gBattleStruct->sentInPokes) >>= 1;
                 gBattleScripting.getexpState = 5;

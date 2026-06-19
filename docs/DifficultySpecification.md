@@ -101,10 +101,10 @@ The over-cap cap is applied **last** — after modern level scaling (Section 2) 
 the Lucky Egg / trainer / traded multipliers — so the catch-up term can never push
 an over-cap Pokémon past the cap. For an over-cap Pokémon (`delta > 0`):
 
-- **Did not participate (passive)** → the **same** reduced table rate (below) is
-  applied to its passive share, but Momentum is **never** read or built for it:
-  passive EXP can neither gain, refresh, nor preserve Momentum. (A passive mon
-  still gets **0** when the KO-er is an over-cap sweeper — Section 3a.)
+- **Did not participate (passive)** → **0**. An over-cap Pokémon is excluded from
+  passive Party EXP Share entirely: it is filtered out in `Cmd_getexp` *before*
+  recipients are determined, and may only gain EXP by participating in battle.
+  Momentum is never read or built for a non-participant.
 - **Participated** → reduced EXP using the base table, indexed by `delta`
   (`sOverCapBaseRate[]`), and Momentum may lift sub-50% brackets (participants
   only):
