@@ -911,11 +911,16 @@ CableClub_EventScript_DirectCornerAttendant::
 	specialvar VAR_RESULT, IsBadEggInParty
 	goto_if_eq VAR_RESULT, TRUE, CableClub_EventScript_AbortLinkPlayerHasBadEgg
 	specialvar VAR_RESULT, IsWirelessAdapterConnected
-	goto_if_eq VAR_RESULT, FALSE, CableClub_EventScript_WelcomeToCableClub
+	goto_if_eq VAR_RESULT, FALSE, CableClub_EventScript_DirectCornerNoWirelessAdapter
 	message CableClub_Text_WelcomeWhichDirectCornerRoom
 	waitmessage
 	delay 28
 	goto CableClub_EventScript_DirectCornerSelectService
+	end
+
+CableClub_EventScript_DirectCornerNoWirelessAdapter::
+	goto_if_set FLAG_VISITED_MAUVILLE_CITY, CableClub_EventScript_WelcomeToCableClub
+	goto CableClub_EventScript_Colosseum
 	end
 
 CableClub_EventScript_DirectCornerSelectService::
