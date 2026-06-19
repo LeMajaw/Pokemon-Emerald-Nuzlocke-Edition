@@ -15,7 +15,7 @@ static const u16 sLotteryPrizes[] =
 {
     ITEM_PP_UP,
     ITEM_LINK_STONE, // was ITEM_EXP_SHARE (Exp Share removed; party-wide EXP is always on)
-    ITEM_MAX_REVIVE,
+    ITEM_MAX_POTION, // was ITEM_MAX_REVIVE (Nuzlocke: Max Revive -> Max Potion, the documented replacement)
     ITEM_MASTER_BALL,
 };
 

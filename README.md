@@ -233,7 +233,7 @@ A concise summary of everything that differs from pret/pokeemerald in the Nuzloc
 - Day Care deposits and egg breeding are disabled; gift/event eggs still hatch (and force nicknames).
 - Player-to-player trading is disabled; NPC trades and link battles remain. Trade-evolution Pokémon use the new Link Stone item (Lilycove Dept. Store 3F) instead.
 - Link-battle and Battle Factory faints never count; the six own-Pokémon Frontier facilities do.
-- Revive/Max Revive removed from shops, hidden items, and field pickups (replaced with Super/Max Potion); revival effects and Sacred Ash are neutralized; fainted Pokémon can't be healed.
+- Revive/Max Revive removed from shops, hidden items, field pickups, and the Lottery Corner (replaced with Super/Max Potion); revival effects and Sacred Ash are neutralized; fainted Pokémon can't be healed.
 - Whiteout auto-recovers a living boxed Pokémon; with none left anywhere, the run ends in a memorial Game Over save.
 - A full auto-save fires after any death — and after a catch area's first encounter is used up — to prevent soft-reset abuse.
 - Buying balls in bulk awards one Premier Ball per ten purchased (any standard purchasable ball; Master/Safari excluded).
